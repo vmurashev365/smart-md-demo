@@ -1,0 +1,73 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+build/
+
+# Test results and reports
+allure-results/
+allure-report/
+reports/
+test-results/
+coverage/
+*.log
+
+# Cucumber rerun
+@rerun.txt
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Authentication and sessions
+auth/cookies.json
+auth/*.json
+!auth/.gitkeep
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+tmp/
+temp/
+
+# Playwright
+playwright-report/
+playwright/.cache/
+blob-report/
+test-results/
+
+# TypeScript
+*.tsbuildinfo
+
+# Debugging
+.debug/
+*.trace
+
+# Screenshots and videos (generated during tests)
+screenshots/
+videos/
+
+# Misc
+*.bak
+*.backup

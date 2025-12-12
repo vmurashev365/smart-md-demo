@@ -1,0 +1,55 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "baseUrl": ".",
+    "paths": {
+      "@pages/*": ["tests/shared/page-objects/*"],
+      "@components/*": ["tests/shared/page-objects/components/*"],
+      "@utils/*": ["tests/shared/utils/*"],
+      "@fixtures/*": ["tests/shared/fixtures/*"],
+      "@config/*": ["tests/shared/config/*"],
+      "@support/*": ["tests/e2e/support/*"]
+    }
+  },
+  "include": [
+    "tests/**/*.ts",
+    "playwright.config.ts",
+    "cucumber.config.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "allure-results",
+    "allure-report",
+    "reports"
+  ],
+  "ts-node": {
+    "transpileOnly": true,
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  }
+}

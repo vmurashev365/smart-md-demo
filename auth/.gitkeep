@@ -1,0 +1,5 @@
+# Authentication storage directory
+# Contains saved browser state for authenticated sessions
+
+*.json
+!.gitkeep
