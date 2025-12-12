@@ -16,15 +16,15 @@ Feature: Shopping Flow
     When I search for "iPhone 15"
     And I wait for search results to load
     Then the search results should contain at least 3 products
-    
+
     When I click on the first product in search results
     Then I should see the product detail page
     And I store the product price as "original_price"
-    
-    When I click the "Adaugă în coș" button
+
+    When I click the add to cart button
     Then I should see a cart confirmation message
     And the cart icon should display "1" item
-    
+
     When I click on the cart icon
     Then I should be on the shopping cart page
     And the cart should contain 1 product
@@ -36,11 +36,10 @@ Feature: Shopping Flow
     Given I have added "Samsung Galaxy" to the cart
     When I click on the cart icon
     Then I should be on the shopping cart page
-    
+
     When I increase the product quantity to 2
     Then the cart should show quantity "2"
     And the total price should be doubled
-    
+
     When I click the remove product button
-    Then the cart should be empty
-    And I should see "Coșul este gol" message
+    Then the cart should show empty state

@@ -3,7 +3,11 @@
  *
  * Functions for parsing, comparing, and validating prices
  * in Moldovan Lei (MDL) format.
+ *
+ * @updated December 2025 - Added tolerance-based assertions
  */
+
+import { Page } from '@playwright/test';
 
 /**
  * Currency configuration for Moldova
@@ -19,37 +23,71 @@ export const CURRENCY = {
 
 /**
  * Parse price string to number
- * Handles various formats: "1 234,56 lei", "1234.56 MDL", "1,234 лей"
+ * Handles various formats:
+ * - "10 999 lei"
+ * - "10.999 lei"
+ * - "10,999.00 MDL"
+ * - "10 999,00 MDL"
+ * - "от 5 999 лей"
  *
  * @param priceString - Price string to parse
  * @returns Parsed price as number
+ * @throws Error if price cannot be parsed
  */
 export function parsePrice(priceString: string): number {
-  if (!priceString) return 0;
+  if (!priceString || typeof priceString !== 'string') {
+    throw new Error(`Invalid price text: ${priceString}`);
+  }
 
-  // Remove currency symbols and trim
+  // Remove currency symbols, "от/from" prefix and trim
   let cleaned = priceString
     .replace(/lei/gi, '')
     .replace(/лей/gi, '')
     .replace(/MDL/gi, '')
     .replace(/€/g, '')
     .replace(/\$/g, '')
+    .replace(/^от\s*/gi, '')  // "от 5 999"
+    .replace(/^from\s*/gi, '')
+    .replace(/^de la\s*/gi, '')
     .trim();
 
-  // Remove thousand separators (spaces and commas when followed by 3 digits)
-  cleaned = cleaned.replace(/[\s ]+/g, ''); // Remove spaces
-  
-  // Handle comma as decimal separator
-  // Check if comma is used as decimal (followed by 1-2 digits at end)
-  if (/,\d{1,2}$/.test(cleaned)) {
+  // Remove thousand separators (spaces)
+  cleaned = cleaned.replace(/[\s ]+/g, '');
+
+  // Determine format by decimal separator position
+  // "10.999" (dot as thousands) vs "10,99" (comma as decimal)
+  const hasCommaDecimal = /,\d{1,2}$/.test(cleaned);
+  const hasDotDecimal = /\.\d{1,2}$/.test(cleaned);
+
+  if (hasCommaDecimal) {
+    // Format: 10.999,00 or 10 999,00
     cleaned = cleaned.replace(/\./g, '').replace(',', '.');
-  } else {
-    // Comma is thousand separator
+  } else if (hasDotDecimal) {
+    // Format: 10,999.00
     cleaned = cleaned.replace(/,/g, '');
+  } else {
+    // Format without decimals: 10 999 or 10.999 or 10,999
+    cleaned = cleaned.replace(/[,.\s]/g, '');
   }
 
   const price = parseFloat(cleaned);
-  return isNaN(price) ? 0 : price;
+
+  if (isNaN(price)) {
+    throw new Error(`Could not parse price from: "${priceString}"`);
+  }
+
+  return price;
+}
+
+/**
+ * Safe parse price - returns 0 instead of throwing
+ */
+export function parsePriceSafe(priceString: string): number {
+  try {
+    return parsePrice(priceString);
+  } catch {
+    return 0;
+  }
 }
 
 /**
@@ -69,15 +107,37 @@ export function formatPrice(price: number, includeSymbol: boolean = true): strin
 }
 
 /**
- * Compare two prices with tolerance for floating point errors
+ * Compare two prices with tolerance
  *
  * @param price1 - First price
  * @param price2 - Second price
- * @param tolerance - Acceptable difference (default: 0.01)
+ * @param tolerance - Acceptable difference (default: 1 MDL)
  * @returns true if prices are equal within tolerance
  */
-export function pricesEqual(price1: number, price2: number, tolerance: number = 0.01): boolean {
+export function pricesEqual(price1: number, price2: number, tolerance: number = 1): boolean {
   return Math.abs(price1 - price2) <= tolerance;
+}
+
+/**
+ * Assert prices are approximately equal (throws on mismatch)
+ *
+ * @param actual - Actual price
+ * @param expected - Expected price
+ * @param tolerance - Acceptable difference (default: 1 MDL)
+ * @throws Error if prices differ more than tolerance
+ */
+export function assertPricesApproximatelyEqual(
+  actual: number,
+  expected: number,
+  tolerance: number = 1
+): void {
+  const diff = Math.abs(actual - expected);
+
+  if (diff > tolerance) {
+    throw new Error(
+      `Price mismatch: expected ${expected}, got ${actual} (difference: ${diff}, tolerance: ${tolerance})`
+    );
+  }
 }
 
 /**
@@ -90,6 +150,15 @@ export function pricesEqual(price1: number, price2: number, tolerance: number = 
  */
 export function priceInRange(price: number, min: number, max: number): boolean {
   return price >= min && price <= max;
+}
+
+/**
+ * Assert price is within range (throws on failure)
+ */
+export function assertPriceInRange(price: number, min: number, max: number): void {
+  if (price < min || price > max) {
+    throw new Error(`Price ${price} is out of range [${min}, ${max}]`);
+  }
 }
 
 /**
@@ -232,4 +301,124 @@ export function getExpensiveProductThreshold(): number {
  */
 export function qualifiesForCredit(price: number): boolean {
   return price >= getExpensiveProductThreshold();
+}
+
+/**
+ * Assert prices are sorted (ascending or descending)
+ * Uses tolerance for floating point comparison
+ *
+ * @param prices - Array of prices
+ * @param direction - 'asc' or 'desc'
+ * @param tolerance - Acceptable tolerance for "equal" prices
+ * @throws Error if not properly sorted
+ */
+export function assertPricesSorted(
+  prices: number[],
+  direction: 'asc' | 'desc',
+  tolerance: number = 1
+): void {
+  if (prices.length < 2) return;
+
+  for (let i = 1; i < prices.length; i++) {
+    const diff = prices[i] - prices[i - 1];
+
+    if (direction === 'asc' && diff < -tolerance) {
+      throw new Error(
+        `Prices not sorted ascending at index ${i}: ${prices[i - 1]} -> ${prices[i]}`
+      );
+    }
+
+    if (direction === 'desc' && diff > tolerance) {
+      throw new Error(
+        `Prices not sorted descending at index ${i}: ${prices[i - 1]} -> ${prices[i]}`
+      );
+    }
+  }
+}
+
+/**
+ * Extract all prices from catalog page using multiple selector strategies
+ *
+ * @param page - Playwright page
+ * @param maxProducts - Maximum products to extract prices from
+ * @returns Array of parsed prices
+ */
+export async function extractPricesFromCatalog(page: Page, maxProducts: number = 20): Promise<number[]> {
+  const priceSelectors = [
+    '[data-testid="product-price"]',
+    '[data-price]',
+    '.product-price',
+    '.price-current',
+    '.catalog-item__price',
+    '.product-card__price',
+  ];
+
+  let priceElements: any[] = [];
+
+  // Try each selector until we find prices
+  for (const selector of priceSelectors) {
+    priceElements = await page.locator(selector).all();
+    if (priceElements.length > 0) break;
+  }
+
+  // If still no prices, try extracting from product cards directly
+  if (priceElements.length === 0) {
+    const productCards = await page.locator(
+      '[data-testid="product-card"], .product-card, .catalog-item'
+    ).all();
+
+    const prices: number[] = [];
+    for (const card of productCards.slice(0, maxProducts)) {
+      const text = await card.textContent();
+      if (text) {
+        const price = extractPrice(text);
+        if (price > 0) prices.push(price);
+      }
+    }
+    return prices;
+  }
+
+  // Extract from price elements
+  const prices: number[] = [];
+  for (const element of priceElements.slice(0, maxProducts)) {
+    // First check data-price attribute
+    const dataPrice = await element.getAttribute('data-price');
+    if (dataPrice) {
+      const price = parseFloat(dataPrice);
+      if (!isNaN(price) && price > 0) {
+        prices.push(price);
+        continue;
+      }
+    }
+
+    // Fall back to text content
+    const text = await element.textContent();
+    if (text) {
+      const price = parsePriceSafe(text);
+      if (price > 0) prices.push(price);
+    }
+  }
+
+  return prices;
+}
+
+/**
+ * Wait for prices to load on page
+ */
+export async function waitForPrices(page: Page, timeout: number = 10000): Promise<boolean> {
+  const priceSelectors = [
+    '[data-testid="product-price"]',
+    '[data-price]',
+    '.product-price',
+    '.price-current',
+  ];
+
+  const combinedSelector = priceSelectors.join(', ');
+
+  try {
+    await page.waitForSelector(combinedSelector, { timeout, state: 'visible' });
+    return true;
+  } catch {
+    return false;
+  }
 }

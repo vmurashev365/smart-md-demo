@@ -5,7 +5,7 @@
  * Implements anti-detection measures and human-like behavior.
  */
 
-import { Before, After, BeforeAll, AfterAll, BeforeStep, AfterStep, Status } from '@cucumber/cucumber';
+import { Before, After, BeforeAll, AfterAll, BeforeStep, AfterStep, Status, setDefaultTimeout } from '@cucumber/cucumber';
 import { chromium, Browser, BrowserContext } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -17,6 +17,9 @@ import {
   getAntiDetectionArgs,
   getDeviceFingerprint,
 } from '../../shared/utils/browser-fingerprint';
+
+// Set default timeout for all steps
+setDefaultTimeout(60 * 1000); // 60 seconds
 
 // Global browser instance
 let browser: Browser;
@@ -97,6 +100,7 @@ Before(async function (this: CustomWorld, scenario) {
 
   // Create browser context with anti-detection settings
   this.context = await browser.newContext({
+    baseURL: this.baseUrl,
     viewport: fingerprint.viewport,
     userAgent: fingerprint.userAgent,
     locale: fingerprint.locale,

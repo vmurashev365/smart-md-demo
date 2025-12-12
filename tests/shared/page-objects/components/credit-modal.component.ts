@@ -3,6 +3,8 @@
  *
  * Component object for Smart.md credit calculator modal.
  * Handles credit provider selection, term selection, and payment calculation.
+ *
+ * @updated December 2025 - Added demo overlay handling
  */
 
 import { Page, Locator } from '@playwright/test';
@@ -97,7 +99,61 @@ export class CreditModalComponent {
     return this.page.locator(SELECTORS.creditModal.overlay);
   }
 
+  /**
+   * Demo/promotional overlay that may appear on credit modals
+   */
+  get demoOverlay(): Locator {
+    return this.page.locator(
+      '[data-testid="demo-overlay"], ' +
+        '.demo-overlay, ' +
+        '.promo-overlay, ' +
+        '[class*="demo"], ' +
+        '[class*="promotional"]'
+    );
+  }
+
+  /**
+   * Demo overlay close button
+   */
+  get demoOverlayClose(): Locator {
+    return this.page.locator(
+      '[data-testid="demo-close"], ' +
+        '.demo-overlay .close, ' +
+        '.demo-overlay button, ' +
+        '[class*="demo"] .close-btn, ' +
+        '[class*="demo"] [class*="close"]'
+    );
+  }
+
   // ==================== Actions ====================
+
+  /**
+   * Dismiss demo overlay if present
+   * Some credit providers show demo/promo overlays that need dismissing
+   *
+   * @returns true if overlay was dismissed
+   */
+  async dismissDemoOverlay(): Promise<boolean> {
+    try {
+      // Wait briefly for overlay to appear (if it will)
+      await this.demoOverlay.waitFor({ state: 'visible', timeout: 2000 });
+
+      // Try to close via close button
+      if (await this.demoOverlayClose.isVisible({ timeout: 1000 })) {
+        await this.demoOverlayClose.click();
+        await randomDelay(300, 500);
+        return true;
+      }
+
+      // Try clicking the overlay itself (some dismiss on click)
+      await this.demoOverlay.click({ force: true });
+      await randomDelay(300, 500);
+      return true;
+    } catch {
+      // No overlay appeared or couldn't dismiss - that's fine
+      return false;
+    }
+  }
 
   /**
    * Check if modal is visible
@@ -108,11 +164,14 @@ export class CreditModalComponent {
   }
 
   /**
-   * Wait for modal to be visible
+   * Wait for modal to be visible (with demo overlay handling)
    */
   async waitForVisible(): Promise<void> {
     await this.modal.waitFor({ state: 'visible' });
     await randomDelay(300, 500);
+
+    // Attempt to dismiss any demo overlay
+    await this.dismissDemoOverlay();
   }
 
   /**

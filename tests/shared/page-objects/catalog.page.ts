@@ -119,33 +119,56 @@ export class CatalogPage extends BasePage {
   }
 
   /**
-   * Apply brand filter
-   * @param brand - Brand name
-   */
-  async applyBrandFilter(brand: string): Promise<void> {
-    // Find brand checkbox
-    const brandCheckbox = this.filterSidebar.locator(
+ * Apply brand filter with multiple fallback strategies
+ * @param brand - Brand name
+ */
+async applyBrandFilter(brand: string): Promise<void> {
+  // Strategy 1: Try data-testid
+  let brandCheckbox = this.filterSidebar.locator(
+    `[data-testid="brand-filter-${brand.toLowerCase()}"]`
+  );
+
+  if (!(await brandCheckbox.isVisible({ timeout: 2000 }).catch(() => false))) {
+    // Strategy 2: Try value attribute
+    brandCheckbox = this.filterSidebar.locator(
       `${SELECTORS.catalog.filterCheckbox}[value="${brand}"], ` +
-        `${SELECTORS.catalog.filterLabel}:has-text("${brand}") input, ` +
+        `${SELECTORS.catalog.filterCheckbox}[value="${brand.toLowerCase()}"]`
+    );
+  }
+
+  if (!(await brandCheckbox.isVisible({ timeout: 2000 }).catch(() => false))) {
+    // Strategy 3: Try label text with input
+    brandCheckbox = this.filterSidebar.locator(
+      `${SELECTORS.catalog.filterLabel}:has-text("${brand}") input, ` +
         `label:has-text("${brand}") input`
     );
-
-    // Scroll to filter section
-    await this.brandFilter.scrollIntoViewIfNeeded();
-    await randomDelay(200, 400);
-
-    // Click on checkbox or label
-    if (await brandCheckbox.isVisible()) {
-      await humanClick(brandCheckbox);
-    } else {
-      // Click on label text
-      const brandLabel = this.filterSidebar.locator(`label:has-text("${brand}")`);
-      await humanClick(brandLabel);
-    }
-
-    // Wait for products to update
-    await waitForProductListUpdate(this.page);
   }
+
+  // Scroll to filter section
+  await this.brandFilter.scrollIntoViewIfNeeded().catch(() => {});
+  await randomDelay(200, 400);
+
+  // Click on checkbox or label
+  if (await brandCheckbox.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await humanClick(brandCheckbox);
+  } else {
+    // Strategy 4: Click on label text directly
+    const brandLabel = this.filterSidebar.locator(
+      `label:has-text("${brand}"), ` +
+        `[class*="filter"] >> text="${brand}", ` +
+        `.brand-item:has-text("${brand}")`
+    );
+
+    if (await brandLabel.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await humanClick(brandLabel);
+    } else {
+      throw new Error(`Cannot find brand filter for: ${brand}`);
+    }
+  }
+
+  // Wait for products to update
+  await waitForProductListUpdate(this.page);
+}
 
   /**
    * Remove brand filter
@@ -170,14 +193,45 @@ export class CatalogPage extends BasePage {
   }
 
   /**
-   * Apply sorting
-   * @param sortOption - Sort option text
+   * Apply sorting with multiple text variants
+   * Handles both RO and RU text for sort options
+   * @param sortOption - Sort option text (will try variations)
    */
   async applySorting(sortOption: string): Promise<void> {
     const dropdown = this.sortDropdown;
 
+    // Define sort text variants for common options
+    const sortVariants: Record<string, string[]> = {
+      priceAsc: [
+        'Prețul: mic spre mare',
+        'Цена: по возрастанию',
+        'Price: low to high',
+        'preț crescător',
+        'pret',
+      ],
+      priceDesc: [
+        'Prețul: mare spre mic',
+        'Цена: по убыванию',
+        'Price: high to low',
+        'preț descrescător',
+      ],
+      popularity: ['Popular', 'Популярные', 'Popularity'],
+      newest: ['Nou', 'Новинки', 'Newest', 'New'],
+    };
+
+    // Build list of texts to try
+    let textsToTry = [sortOption];
+
+    // Add variants if sortOption matches a known key
+    for (const [, variants] of Object.entries(sortVariants)) {
+      if (variants.some((v) => v.toLowerCase().includes(sortOption.toLowerCase()))) {
+        textsToTry = [...textsToTry, ...variants];
+        break;
+      }
+    }
+
     // Check if it's a select element or custom dropdown
-    const tagName = await dropdown.evaluate(el => el.tagName.toLowerCase());
+    const tagName = await dropdown.evaluate((el) => el.tagName.toLowerCase());
 
     if (tagName === 'select') {
       await humanSelectOption(dropdown, sortOption);
@@ -186,9 +240,28 @@ export class CatalogPage extends BasePage {
       await humanClick(dropdown);
       await randomDelay(200, 400);
 
-      // Click on option
-      const option = this.page.locator(`${SELECTORS.catalog.sortOption}:has-text("${sortOption}")`);
-      await humanClick(option);
+      // Try each text variant
+      let clicked = false;
+      for (const text of textsToTry) {
+        const option = this.page.locator(
+          `${SELECTORS.catalog.sortOption}:has-text("${text}"), ` +
+            `[role="option"]:has-text("${text}"), ` +
+            `.dropdown-item:has-text("${text}"), ` +
+            `li:has-text("${text}")`
+        );
+
+        if (await option.isVisible({ timeout: 1000 }).catch(() => false)) {
+          await humanClick(option);
+          clicked = true;
+          break;
+        }
+      }
+
+      if (!clicked) {
+        // Close dropdown if no option found
+        await this.page.keyboard.press('Escape');
+        throw new Error(`Sort option not found: ${sortOption}`);
+      }
     }
 
     await waitForProductListUpdate(this.page);

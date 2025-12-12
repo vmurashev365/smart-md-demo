@@ -69,6 +69,12 @@ When('I click the "Adaugă în coș" button', async function (this: CustomWorld)
   await productPage.addToCart();
 });
 
+When('I click the add to cart button', async function (this: CustomWorld) {
+  // Language-agnostic version using selector
+  const productPage = new ProductDetailPage(this.page);
+  await productPage.addToCart();
+});
+
 Then('I should see a cart confirmation message', async function (this: CustomWorld) {
   // Wait for confirmation popup or toast
   const confirmation = this.page.locator(
@@ -223,14 +229,39 @@ When('I click the remove product button', async function (this: CustomWorld) {
 Then('the cart should be empty', async function (this: CustomWorld) {
   const cartPage = new CartPage(this.page);
   const isEmpty = await cartPage.isEmpty();
-  
+
   expect(isEmpty).toBe(true);
 });
 
-Then('I should see {string} message', async function (
-  this: CustomWorld,
-  message: string
-) {
+Then('the cart should show empty state', async function (this: CustomWorld) {
+  // Use selector-based check instead of text matching
+  const emptyStateIndicators = this.page.locator(SELECTORS.cart.emptyState);
+
+  try {
+    await expect(emptyStateIndicators.first()).toBeVisible({ timeout: 5000 });
+  } catch {
+    // Fallback: check if cart count is 0 or cart items list is empty
+    const cartPage = new CartPage(this.page);
+    const count = await cartPage.getItemCount();
+    expect(count).toBe(0);
+  }
+});
+
+Then('I should see {string} message', async function (this: CustomWorld, message: string) {
   const messageEl = this.page.locator(`text="${message}"`);
   await expect(messageEl).toBeVisible({ timeout: 5000 });
+});
+
+Then('I should see empty cart message', async function (this: CustomWorld) {
+  // Language-agnostic check using selectors
+  const emptyMessage = this.page.locator(SELECTORS.cart.emptyState);
+
+  try {
+    await expect(emptyMessage.first()).toBeVisible({ timeout: 5000 });
+  } catch {
+    // Fallback: verify cart is effectively empty by item count
+    const cartPage = new CartPage(this.page);
+    const count = await cartPage.getItemCount();
+    expect(count).toBe(0);
+  }
 });

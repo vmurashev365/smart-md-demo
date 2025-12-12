@@ -10,6 +10,7 @@ import { expect } from '@playwright/test';
 import { CustomWorld } from '../support/custom-world';
 import { HomePage } from '../../shared/page-objects/home.page';
 import { DEVICES } from '../../shared/fixtures/devices';
+import { SELECTORS } from '../../shared/config/selectors';
 import { humanClick, humanWaitForContent, randomDelay } from '../../shared/utils/human-like';
 import { waitForPageLoad, waitForContentUpdate } from '../../shared/utils/wait-utils';
 import { detectLanguageFromUrl } from '../../shared/utils/language-utils';
@@ -162,7 +163,22 @@ Then('the {string} button should be visible', async function (
   this: CustomWorld,
   buttonText: string
 ) {
-  const button = this.page.locator(`button:has-text("${buttonText}"), a:has-text("${buttonText}"), [role="button"]:has-text("${buttonText}")`);
+  const normalized = buttonText.trim().toLowerCase();
+
+  // Key business strings: avoid direct has-text for stability/localization.
+  if (normalized.includes('adaug') || /co[sș]/i.test(buttonText) || normalized.includes('корзин')) {
+    await expect(this.page.locator(SELECTORS.product.addToCart).first()).toBeVisible({ timeout: 10000 });
+    return;
+  }
+
+  if (normalized.includes('cump') && normalized.includes('credit')) {
+    await expect(this.page.locator(SELECTORS.product.buyCredit).first()).toBeVisible({ timeout: 10000 });
+    return;
+  }
+
+  const button = this.page.locator(
+    `button:has-text("${buttonText}"), a:has-text("${buttonText}"), [role="button"]:has-text("${buttonText}")`
+  );
   await expect(button.first()).toBeVisible({ timeout: 10000 });
 });
 
@@ -170,6 +186,18 @@ Then('the {string} button should still be visible', async function (
   this: CustomWorld,
   buttonText: string
 ) {
+  const normalized = buttonText.trim().toLowerCase();
+
+  if (normalized.includes('adaug') || /co[sș]/i.test(buttonText) || normalized.includes('корзин')) {
+    await expect(this.page.locator(SELECTORS.product.addToCart).first()).toBeVisible();
+    return;
+  }
+
+  if (normalized.includes('cump') && normalized.includes('credit')) {
+    await expect(this.page.locator(SELECTORS.product.buyCredit).first()).toBeVisible();
+    return;
+  }
+
   const button = this.page.locator(`button:has-text("${buttonText}"), a:has-text("${buttonText}")`);
   await expect(button.first()).toBeVisible();
 });
@@ -180,12 +208,29 @@ When('I click the {string} button', async function (
   this: CustomWorld,
   buttonText: string
 ) {
-  const button = this.page.locator(
-    `button:has-text("${buttonText}"), ` +
-    `a:has-text("${buttonText}"), ` +
-    `[role="button"]:has-text("${buttonText}"), ` +
-    `input[value="${buttonText}"]`
-  ).first();
+  const normalized = buttonText.trim().toLowerCase();
+
+  // Key business strings: route through resilient selectors.
+  if (normalized.includes('adaug') || /co[sș]/i.test(buttonText) || normalized.includes('корзин')) {
+    await humanClick(this.page.locator(SELECTORS.product.addToCart).first());
+    await randomDelay(300, 600);
+    return;
+  }
+
+  if (normalized.includes('cump') && normalized.includes('credit')) {
+    await humanClick(this.page.locator(SELECTORS.product.buyCredit).first());
+    await randomDelay(300, 600);
+    return;
+  }
+
+  const button = this.page
+    .locator(
+      `button:has-text("${buttonText}"), ` +
+        `a:has-text("${buttonText}"), ` +
+        `[role="button"]:has-text("${buttonText}"), ` +
+        `input[value="${buttonText}"]`
+    )
+    .first();
 
   await humanClick(button);
   await randomDelay(300, 600);

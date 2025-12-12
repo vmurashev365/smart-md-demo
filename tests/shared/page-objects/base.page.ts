@@ -32,10 +32,11 @@ export abstract class BasePage {
   // ==================== Navigation ====================
 
   /**
-   * Navigate to a URL path
-   * @param path - Relative path (e.g., '/search')
+   * Navigate to a URL path (relative or absolute)
+   * @param path - Relative path (e.g., '/search') or full URL
    */
   async goto(path: string): Promise<void> {
+    // If path is relative, it will be resolved against baseURL from playwright config
     await this.page.goto(path);
     await this.waitForPageLoad();
   }

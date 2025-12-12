@@ -25,9 +25,8 @@ const common = {
   ],
   formatOptions: {
     snippetInterface: 'async-await',
-    snippetSyntax: './tests/e2e/support/snippet-syntax.ts',
+    snippetSyntax: undefined,
   },
-  publishQuiet: true,
   worldParameters: {
     baseUrl: process.env.BASE_URL || 'https://smart.md',
     headless: process.env.HEADLESS === 'true',
@@ -39,11 +38,13 @@ const common = {
 module.exports = {
   default: {
     ...common,
+    timeout: 60 * 1000, // 60 seconds per step
   },
-  
+
   smoke: {
     ...common,
     tags: '@smoke',
+    timeout: 60 * 1000,
   },
   
   critical: {

@@ -9,6 +9,7 @@ import { Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS } from '../config/selectors';
 import { humanClick, randomDelay } from '../utils/human-like';
+import { firstWorkingLocator } from '../utils/locator-helper';
 import { parsePrice, qualifiesForCredit } from '../utils/price-utils';
 import { waitForCartUpdate, waitForModal } from '../utils/wait-utils';
 
@@ -210,7 +211,10 @@ export class ProductDetailPage extends BasePage {
    * Add product to cart
    */
   async addToCart(): Promise<void> {
-    await humanClick(this.addToCartButton);
+    const addToCart = await firstWorkingLocator(this.page, SELECTORS.product.addToCart, {
+      contextLabel: 'product.addToCart',
+    });
+    await humanClick(addToCart);
     await waitForCartUpdate(this.page);
     await randomDelay(300, 600);
   }

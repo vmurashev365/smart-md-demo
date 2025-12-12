@@ -10,6 +10,7 @@ import { BasePage } from './base.page';
 import { SELECTORS } from '../config/selectors';
 import { URLS } from '../config/urls';
 import { humanClick, humanType, randomDelay } from '../utils/human-like';
+import { firstWorkingLocator } from '../utils/locator-helper';
 import { waitForSearchResults } from '../utils/wait-utils';
 import { Language } from '../utils/language-utils';
 
@@ -146,6 +147,16 @@ export class HomePage extends BasePage {
    * @param subcategory - Optional subcategory name
    */
   async navigateToCategory(category: string, subcategory?: string): Promise<void> {
+    // Prefer URL navigation for known high-value category paths to avoid brittle text selectors.
+    const cat = category.trim().toLowerCase();
+    const sub = subcategory?.trim().toLowerCase();
+
+    if (sub && cat === 'telefoane' && sub === 'smartphone-uri') {
+      await this.goto(URLS.categories.phones.smartphones);
+      await this.waitForPageLoad();
+      return;
+    }
+
     // Find category link
     const categoryLink = this.page.locator(SELECTORS.navigation.categoryLink, {
       hasText: category,
@@ -241,7 +252,10 @@ export class HomePage extends BasePage {
    * Click on cart icon to go to cart page
    */
   async clickCart(): Promise<void> {
-    await humanClick(this.cartIcon);
+    const cartIcon = await firstWorkingLocator(this.page, SELECTORS.header.cartIcon, {
+      contextLabel: 'header.cartIcon',
+    });
+    await humanClick(cartIcon);
     await this.waitForPageLoad();
   }
 

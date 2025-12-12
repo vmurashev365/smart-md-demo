@@ -8,6 +8,7 @@
 import { Page, Locator } from '@playwright/test';
 import { SELECTORS } from '../../config/selectors';
 import { humanClick, humanType, randomDelay } from '../../utils/human-like';
+import { firstWorkingLocator } from '../../utils/locator-helper';
 
 /**
  * Header Component class
@@ -116,7 +117,10 @@ export class HeaderComponent {
    * Click cart icon
    */
   async clickCart(): Promise<void> {
-    await humanClick(this.cartIcon);
+    const cartIcon = await firstWorkingLocator(this.page, SELECTORS.header.cartIcon, {
+      contextLabel: 'header.cartIcon',
+    });
+    await humanClick(cartIcon);
   }
 
   /**

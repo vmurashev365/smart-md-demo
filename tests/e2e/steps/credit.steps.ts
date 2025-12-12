@@ -19,20 +19,43 @@ import { validateMonthlyPayment } from '../../shared/utils/price-utils';
 
 When('I click the "Cumpără în credit" button', async function (this: CustomWorld) {
   const productPage = new ProductDetailPage(this.page);
-  
+
   // Store product price for later validation
   const price = await productPage.getPrice();
   this.storeValue('product_price', price);
-  
+
+  await productPage.openCreditCalculator();
+});
+
+When('I click the buy on credit button', async function (this: CustomWorld) {
+  // Language-agnostic version
+  const productPage = new ProductDetailPage(this.page);
+
+  const price = await productPage.getPrice();
+  this.storeValue('product_price', price);
+
   await productPage.openCreditCalculator();
 });
 
 Then('the credit calculator modal should appear', async function (this: CustomWorld) {
   const creditModal = new CreditModalComponent(this.page);
+  // waitForVisible now handles demo overlay automatically
+  await creditModal.waitForVisible();
+
   const isVisible = await creditModal.isVisible();
-  
   expect(isVisible).toBe(true);
   this.logMessage('Credit calculator modal opened');
+});
+
+Then('the credit calculator should be visible', async function (this: CustomWorld) {
+  const creditModal = new CreditModalComponent(this.page);
+  await creditModal.waitForVisible();
+
+  // Dismiss any demo overlay that might be covering the modal
+  await creditModal.dismissDemoOverlay();
+
+  const isVisible = await creditModal.isVisible();
+  expect(isVisible).toBe(true);
 });
 
 Then('I should see the monthly payment amount', async function (this: CustomWorld) {
@@ -188,7 +211,19 @@ Then('the {string} credit offer should be selected', async function (
 Then('I should see available payment terms', async function (this: CustomWorld) {
   const creditModal = new CreditModalComponent(this.page);
   const terms = await creditModal.getAvailableTerms();
-  
+
   expect(terms.length).toBeGreaterThan(0);
   this.logMessage(`Available terms: ${terms.join(', ')}`);
+});
+
+Then('the add to cart button should still be visible', async function (this: CustomWorld) {
+  // Language-agnostic check using selectors
+  const addToCartButton = this.page.locator(SELECTORS.product.addToCart);
+  await expect(addToCartButton.first()).toBeVisible({ timeout: 5000 });
+});
+
+Then('the "Adaugă în coș" button should still be visible', async function (this: CustomWorld) {
+  // Legacy step - redirects to language-agnostic version
+  const addToCartButton = this.page.locator(SELECTORS.product.addToCart);
+  await expect(addToCartButton.first()).toBeVisible({ timeout: 5000 });
 });

@@ -3,6 +3,8 @@
  *
  * Component object for Smart.md mobile navigation drawer.
  * Handles mobile category navigation and menu interactions.
+ *
+ * @updated December 2025 - Added stability checks for desktop nav visibility
  */
 
 import { Page, Locator } from '@playwright/test';
@@ -66,6 +68,13 @@ export class MobileMenuComponent {
     return this.page.locator(SELECTORS.mobile.bottomNav);
   }
 
+  /**
+   * Desktop navigation (to verify it's hidden on mobile)
+   */
+  get desktopNav(): Locator {
+    return this.page.locator(SELECTORS.mobile.desktopNav);
+  }
+
   // ==================== Actions ====================
 
   /**
@@ -103,6 +112,44 @@ export class MobileMenuComponent {
       await this.page.click('body', { position: { x: 10, y: 10 }, force: true });
     }
     await this.waitForClose();
+  }
+
+  /**
+   * Assert desktop navigation is hidden (CSS visibility, not DOM removal)
+   * Desktop nav may exist in DOM but should be hidden on mobile viewport
+   *
+   * @throws Error if desktop nav is visible
+   */
+  async assertDesktopNavHidden(): Promise<void> {
+    const desktopNav = this.desktopNav;
+
+    // Check if element exists in DOM first
+    const count = await desktopNav.count();
+    if (count === 0) {
+      // Element doesn't exist - that's fine for mobile
+      return;
+    }
+
+    // Element exists - check CSS visibility
+    const isVisible = await desktopNav.isVisible();
+    if (isVisible) {
+      // Double-check with computed styles
+      const styles = await desktopNav.evaluate((el) => {
+        const computed = window.getComputedStyle(el);
+        return {
+          display: computed.display,
+          visibility: computed.visibility,
+          opacity: computed.opacity,
+        };
+      });
+
+      if (styles.display !== 'none' && styles.visibility !== 'hidden' && styles.opacity !== '0') {
+        throw new Error(
+          `Desktop navigation should be hidden on mobile viewport. ` +
+            `Styles: display=${styles.display}, visibility=${styles.visibility}, opacity=${styles.opacity}`
+        );
+      }
+    }
   }
 
   /**

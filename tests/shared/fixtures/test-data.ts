@@ -2,7 +2,87 @@
  * Test Data Fixtures
  *
  * Centralized test data for Smart.md E2E tests.
+ * Updated with stable product identifiers and URL patterns.
+ *
+ * @updated December 2025
  */
+
+/**
+ * Primary test products with stable identification
+ * Use urlPattern for matching, not exact text
+ */
+export const TEST_PRODUCTS = {
+  /**
+   * Primary product for demo scenarios
+   * Chosen as stable, always in stock
+   */
+  primary: {
+    searchTerm: 'iPhone 15',
+    alternativeSearchTerms: ['iPhone', 'Apple iPhone', 'smartphone Apple'],
+    urlPattern: /iphone.*15|iphone-15/i,
+    minPriceForCredit: 15000,
+    expectedBrand: 'Apple',
+  },
+
+  /**
+   * Budget product for cart tests
+   */
+  budget: {
+    searchTerm: 'cablu USB',
+    alternativeSearchTerms: ['cablu', 'USB cable', 'кабель USB'],
+    urlPattern: /cablu|usb|cable/i,
+    maxExpectedPrice: 500,
+  },
+
+  /**
+   * Expensive product for credit test
+   */
+  expensive: {
+    searchTerm: 'MacBook Pro',
+    alternativeSearchTerms: ['MacBook', 'Apple MacBook', 'laptop Apple'],
+    urlPattern: /macbook/i,
+    minPriceForCredit: 25000,
+  },
+};
+
+/**
+ * Categories with multiple URL patterns for stability
+ */
+export const TEST_CATEGORIES = {
+  smartphones: {
+    name: 'Smartphone',
+    urlPatterns: ['/smartphone', '/telefoane', '/phones', '/telefon'],
+    menuItems: ['Smartphone', 'Telefoane', 'Смартфоны', 'Phones'],
+  },
+  gadgets: {
+    name: 'Gadgets',
+    urlPatterns: ['/gadget', '/gadgeturi', '/accessories'],
+    menuItems: ['Gadgeturi', 'Gadgets', 'Гаджеты', 'Accesorii'],
+  },
+  laptops: {
+    name: 'Laptops',
+    urlPatterns: ['/laptop', '/laptopuri', '/notebooks'],
+    menuItems: ['Laptop-uri', 'Laptops', 'Ноутбуки'],
+  },
+};
+
+/**
+ * Brands for filtering with multiple match values
+ */
+export const TEST_BRANDS = {
+  apple: {
+    name: 'Apple',
+    filterValues: ['Apple', 'apple', 'APPLE'],
+  },
+  samsung: {
+    name: 'Samsung',
+    filterValues: ['Samsung', 'samsung', 'SAMSUNG'],
+  },
+  xiaomi: {
+    name: 'Xiaomi',
+    filterValues: ['Xiaomi', 'xiaomi', 'XIAOMI', 'Redmi'],
+  },
+};
 
 /**
  * Search queries for testing
@@ -13,21 +93,21 @@ export const SEARCH_QUERIES = {
   samsung: 'Samsung Galaxy',
   macbook: 'MacBook Pro',
   xiaomi: 'Xiaomi Redmi',
-  
+
   // Categories
   smartphone: 'smartphone',
   laptop: 'laptop',
   tv: 'televizor',
   tablet: 'tablet',
-  
+
   // Romanian specific
   telefon: 'telefon',
   calculator: 'calculator',
-  
+
   // Russian specific
   telefonRu: 'телефон',
   televizorRu: 'телевизор',
-  
+
   // Edge cases
   empty: '',
   special: 'iPhone & Samsung',

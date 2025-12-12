@@ -125,6 +125,7 @@ smart-md-demo/
 │       └── utils/              # Utility functions
 │           ├── human-like.ts   # Human behavior simulation
 │           ├── browser-fingerprint.ts
+│           ├── locator-helper.ts
 │           ├── wait-utils.ts
 │           ├── price-utils.ts
 │           └── language-utils.ts
@@ -216,6 +217,79 @@ npm run allure:serve
 - 📝 Step-by-step execution
 - 📈 Trend analysis
 - 🏷️ Tag breakdown
+
+## 🛡️ Stability & Anti-Flakiness
+
+This framework implements several patterns to ensure stable, reliable tests:
+
+### Selector Fallback Chains
+
+Selectors are designed to be resilient to text changes and localization.
+Primary strategies rely on structural CSS/data attributes, with human-readable labels used only as a fallback.
+
+All selectors use fallback chains with priority: `data-testid` → `data-*` → CSS → text-based.
+
+```typescript
+// Example: Add to cart button
+addToCart: [
+  '[data-testid="add-to-cart"]',
+  '[data-action="add-to-cart"]',
+  '.add-to-cart-btn',
+  // RO fallback: covers both "cos" and "coș"
+  'button:has-text(/co[sș]/i)',
+  // RU fallback
+  'button:has-text(/корзин/i)',
+].join(', ')
+```
+
+### Runtime Fallback Resolution (`firstWorkingLocator`)
+
+For complex fallback chains stored as a single comma-joined string, the framework resolves the first *actually matching* selector at runtime using `firstWorkingLocator`.
+
+```ts
+import { firstWorkingLocator } from './tests/shared/utils/locator-helper';
+import { SELECTORS } from './tests/shared/config/selectors';
+
+const addToCart = await firstWorkingLocator(page, SELECTORS.product.addToCart, { contextLabel: 'product.addToCart' });
+await addToCart.click();
+```
+
+### Language-Agnostic Assertions
+
+Tests avoid hardcoded UI text for key business strings. Instead, they:
+- Check selectors (not exact text like `"Coșul este gol"`)
+- Use URL patterns for product identification
+- Support both RO and RU variants
+
+```typescript
+// ❌ Fragile
+await expect(page.locator('text="Coșul este gol"')).toBeVisible();
+
+// ✅ Stable
+await expect(page.locator(SELECTORS.cart.emptyState)).toBeVisible();
+```
+
+### Price Tolerance
+
+Price assertions allow for minor variations (±1 MDL by default):
+
+```typescript
+// Allows for rounding differences
+assertPricesApproximatelyEqual(actual, expected, tolerance: 1);
+```
+
+### Demo Overlay Handling
+
+Credit calculator modals may show demo/promo overlays which are automatically dismissed.
+
+### CSS Visibility Checks
+
+Mobile tests check CSS visibility (not just DOM presence):
+
+```typescript
+// Desktop nav may exist in DOM but be CSS-hidden on mobile
+await mobileMenu.assertDesktopNavHidden();
+```
 
 ## ⚙️ Configuration
 

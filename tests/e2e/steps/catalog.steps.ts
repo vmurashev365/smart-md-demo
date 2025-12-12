@@ -207,7 +207,7 @@ Then('the navigation menu should be in Russian', async function (this: CustomWor
 Then('the mobile layout should be displayed', async function (this: CustomWorld) {
   const homePage = new HomePage(this.page);
   const isMobile = await homePage.isMobileLayout();
-  
+
   expect(isMobile).toBe(true);
 });
 
@@ -217,11 +217,36 @@ Then('the hamburger menu icon should be visible', async function (this: CustomWo
 });
 
 Then('the desktop navigation should be hidden', async function (this: CustomWorld) {
-  const homePage = new HomePage(this.page);
-  const isDesktopNavVisible = await homePage.isDesktopNavVisible();
-  
-  // Desktop nav should be hidden on mobile
-  expect(isDesktopNavVisible).toBe(false);
+  // Use MobileMenuComponent's assertDesktopNavHidden for CSS-based check
+  const mobileMenu = new MobileMenuComponent(this.page);
+
+  try {
+    await mobileMenu.assertDesktopNavHidden();
+  } catch (error) {
+    // If assertion fails, re-throw with context
+    throw new Error(`Desktop navigation should be hidden on mobile viewport: ${error}`);
+  }
+});
+
+Then('the desktop navigation should not be visible', async function (this: CustomWorld) {
+  // Alternative: Check CSS display/visibility
+  const desktopNav = this.page.locator(SELECTORS.mobile.desktopNav);
+  const count = await desktopNav.count();
+
+  if (count === 0) {
+    // Element doesn't exist in DOM - that's acceptable
+    return;
+  }
+
+  // Check computed styles
+  const isHidden = await desktopNav.evaluate((el) => {
+    const styles = window.getComputedStyle(el);
+    return (
+      styles.display === 'none' || styles.visibility === 'hidden' || styles.opacity === '0'
+    );
+  });
+
+  expect(isHidden).toBe(true);
 });
 
 When('I tap on the hamburger menu icon', async function (this: CustomWorld) {

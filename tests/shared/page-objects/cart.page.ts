@@ -10,6 +10,7 @@ import { BasePage } from './base.page';
 import { SELECTORS } from '../config/selectors';
 import { URLS } from '../config/urls';
 import { humanClick, randomDelay } from '../utils/human-like';
+import { firstWorkingLocator } from '../utils/locator-helper';
 import { parsePrice, calculateTotal, pricesEqual } from '../utils/price-utils';
 import { waitForCartUpdate, waitForContentUpdate } from '../utils/wait-utils';
 
@@ -55,7 +56,7 @@ export class CartPage extends BasePage {
    * Empty cart message
    */
   get emptyCartMessage(): Locator {
-    return this.page.locator(SELECTORS.cart.emptyMessage);
+    return this.page.locator(SELECTORS.cart.emptyState);
   }
 
   /**
@@ -111,7 +112,10 @@ export class CartPage extends BasePage {
    * @returns true if empty
    */
   async isEmpty(): Promise<boolean> {
-    return await this.emptyCartMessage.isVisible();
+    const emptyState = await firstWorkingLocator(this.page, SELECTORS.cart.emptyState, {
+      contextLabel: 'cart.emptyState',
+    });
+    return await emptyState.isVisible();
   }
 
   /**

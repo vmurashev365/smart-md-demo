@@ -3,7 +3,11 @@
  *
  * Functions for handling Romanian/Russian language switching
  * and content validation.
+ *
+ * @updated December 2025 - Added stable product identification
  */
+
+import { Page } from '@playwright/test';
 
 /**
  * Supported languages
@@ -127,6 +131,21 @@ export const UI_TRANSLATIONS = {
     RO: 'Gadgeturi',
     RU: 'Гаджеты',
   },
+};
+
+/**
+ * Product identifiers that work across both languages (URL-based)
+ * These patterns match product URLs regardless of RO/RU language
+ */
+export const PRODUCT_URL_PATTERNS = {
+  iphone: /iphone/i,
+  samsung: /samsung/i,
+  xiaomi: /xiaomi|redmi|poco/i,
+  macbook: /macbook/i,
+  laptop: /laptop|notebook/i,
+  headphones: /casti|headphones|airpods|buds/i,
+  watch: /watch|ceas/i,
+  tv: /televizor|tv/i,
 };
 
 /**
@@ -276,4 +295,107 @@ export function normalizeText(text: string): string {
  */
 export function textsEquivalent(text1: string, text2: string): boolean {
   return normalizeText(text1) === normalizeText(text2);
+}
+
+/**
+ * Identify product by URL pattern (language-independent)
+ * This allows stable product identification across RO/RU pages
+ *
+ * @param url - Product URL or page URL
+ * @param pattern - RegExp pattern to match
+ * @returns true if URL matches pattern
+ */
+export function matchesProductUrl(url: string, pattern: RegExp): boolean {
+  // Remove language prefix and domain for cleaner matching
+  const cleanUrl = url.replace(/^https?:\/\/[^\/]+/, '').replace(/^\/(ru|ro)\//, '/');
+  return pattern.test(cleanUrl);
+}
+
+/**
+ * Get product identifier from URL (stable across languages)
+ *
+ * @param url - Product page URL
+ * @returns Product slug/identifier or null
+ */
+export function getProductIdentifier(url: string): string | null {
+  // Match product ID patterns: /p/123456 or /product/some-slug
+  const patterns = [
+    /\/p\/(\d+)/,              // /p/123456
+    /\/product\/([^\/\?]+)/,   // /product/some-product-name
+    /\/tovar\/([^\/\?]+)/,     // /tovar/some-product (Russian)
+    /\/([^\/]+)-p(\d+)/,       // /some-product-p12345
+  ];
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) {
+      return match[1];
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Assert page is not an error page (404, 500, etc.)
+ *
+ * @param page - Playwright page
+ * @throws Error if page appears to be an error page
+ */
+export async function assertPageNotError(page: Page): Promise<void> {
+  const url = page.url();
+  const title = await page.title();
+  const content = await page.content();
+
+  // Check URL for error indicators
+  if (/\/404|\/error|\/not-found/i.test(url)) {
+    throw new Error(`Page appears to be error page: ${url}`);
+  }
+
+  // Check title for error indicators
+  if (/404|not found|ошибка|eroare|pagina nu/i.test(title)) {
+    throw new Error(`Page title indicates error: ${title}`);
+  }
+
+  // Check for common error page content
+  const errorPatterns = [
+    'Page not found',
+    'Страница не найдена',
+    'Pagina nu a fost găsită',
+    '404',
+    'Error occurred',
+    'Произошла ошибка',
+  ];
+
+  for (const pattern of errorPatterns) {
+    if (content.includes(pattern) && content.length < 10000) {
+      // Only flag if page is small (likely error page)
+      throw new Error(`Page content indicates error: found "${pattern}"`);
+    }
+  }
+}
+
+/**
+ * Get localized text with fallback
+ * Useful when exact translation unknown
+ *
+ * @param key - Translation key
+ * @returns Both RO and RU variants for selector
+ */
+export function getTextVariants(key: keyof typeof UI_TRANSLATIONS): { ro: string; ru: string } {
+  return {
+    ro: UI_TRANSLATIONS[key].RO,
+    ru: UI_TRANSLATIONS[key].RU,
+  };
+}
+
+/**
+ * Create text selector that matches either RO or RU
+ *
+ * @param key - Translation key
+ * @returns XPath or CSS selector matching both languages
+ */
+export function getBilingualTextSelector(key: keyof typeof UI_TRANSLATIONS): string {
+  const { ro, ru } = getTextVariants(key);
+  return `//*[contains(text(), "${ro}") or contains(text(), "${ru}")]`;
 }
