@@ -14,6 +14,7 @@ import { SELECTORS } from '../../shared/config/selectors';
 import { randomDelay } from '../../shared/utils/human-like';
 import { waitForContentUpdate } from '../../shared/utils/wait-utils';
 import { validateMonthlyPayment } from '../../shared/utils/price-utils';
+import { joinSelectors } from '../../shared/utils/locator-helper';
 
 // ==================== Credit Calculator ====================
 
@@ -174,7 +175,7 @@ Then('I should be back on the product page', async function (this: CustomWorld) 
   expect(isModalVisible).toBe(false);
   
   // Verify product page elements are visible
-  const title = this.page.locator(SELECTORS.product.title);
+  const title = this.page.locator(joinSelectors(SELECTORS.product.title));
   await expect(title).toBeVisible();
 });
 
@@ -196,9 +197,9 @@ Then('the {string} credit offer should be selected', async function (
   // This would check if the provider is highlighted/selected
   // Implementation depends on actual UI
   const selectedProvider = this.page.locator(
-    `${SELECTORS.creditModal.providers}.selected:has-text("${providerName}"), ` +
-    `${SELECTORS.creditModal.providers}.active:has-text("${providerName}"), ` +
-    `${SELECTORS.creditModal.providers}[aria-selected="true"]:has-text("${providerName}")`
+    `${joinSelectors(SELECTORS.creditModal.providers)}.selected:has-text("${providerName}"), ` +
+    `${joinSelectors(SELECTORS.creditModal.providers)}.active:has-text("${providerName}"), ` +
+    `${joinSelectors(SELECTORS.creditModal.providers)}[aria-selected="true"]:has-text("${providerName}")`
   );
   
   // Allow flexible matching - provider might be selected by default
@@ -218,12 +219,12 @@ Then('I should see available payment terms', async function (this: CustomWorld) 
 
 Then('the add to cart button should still be visible', async function (this: CustomWorld) {
   // Language-agnostic check using selectors
-  const addToCartButton = this.page.locator(SELECTORS.product.addToCart);
+  const addToCartButton = this.page.locator(joinSelectors(SELECTORS.product.addToCart));
   await expect(addToCartButton.first()).toBeVisible({ timeout: 5000 });
 });
 
 Then('the "Adaugă în coș" button should still be visible', async function (this: CustomWorld) {
   // Legacy step - redirects to language-agnostic version
-  const addToCartButton = this.page.locator(SELECTORS.product.addToCart);
+  const addToCartButton = this.page.locator(joinSelectors(SELECTORS.product.addToCart));
   await expect(addToCartButton.first()).toBeVisible({ timeout: 5000 });
 });

@@ -10,7 +10,7 @@ import { BasePage } from './base.page';
 import { SELECTORS } from '../config/selectors';
 import { URLS } from '../config/urls';
 import { humanClick, humanType, randomDelay } from '../utils/human-like';
-import { firstWorkingLocator } from '../utils/locator-helper';
+import { firstWorkingLocator, joinSelectors } from '../utils/locator-helper';
 import { waitForSearchResults } from '../utils/wait-utils';
 import { Language } from '../utils/language-utils';
 
@@ -24,84 +24,84 @@ export class HomePage extends BasePage {
    * Search input field
    */
   get searchInput(): Locator {
-    return this.page.locator(SELECTORS.header.searchInput);
+    return this.page.locator(joinSelectors(SELECTORS.header.searchInput));
   }
 
   /**
    * Search button
    */
   get searchButton(): Locator {
-    return this.page.locator(SELECTORS.header.searchButton);
+    return this.page.locator(joinSelectors(SELECTORS.header.searchButton));
   }
 
   /**
    * Search form
    */
   get searchForm(): Locator {
-    return this.page.locator(SELECTORS.header.searchForm);
+    return this.page.locator(joinSelectors(SELECTORS.header.searchForm));
   }
 
   /**
    * Cart icon in header
    */
   get cartIcon(): Locator {
-    return this.page.locator(SELECTORS.header.cartIcon);
+    return this.page.locator(joinSelectors(SELECTORS.header.cartIcon));
   }
 
   /**
    * Cart item count badge
    */
   get cartCount(): Locator {
-    return this.page.locator(SELECTORS.header.cartCount);
+    return this.page.locator(joinSelectors(SELECTORS.header.cartCount));
   }
 
   /**
    * Language switcher
    */
   get languageSwitcher(): Locator {
-    return this.page.locator(SELECTORS.header.languageSwitcher);
+    return this.page.locator(joinSelectors(SELECTORS.header.languageSwitcher));
   }
 
   /**
    * Romanian language link
    */
   get languageRO(): Locator {
-    return this.page.locator(SELECTORS.header.languageRO);
+    return this.page.locator(joinSelectors(SELECTORS.header.languageRO));
   }
 
   /**
    * Russian language link
    */
   get languageRU(): Locator {
-    return this.page.locator(SELECTORS.header.languageRU);
+    return this.page.locator(joinSelectors(SELECTORS.header.languageRU));
   }
 
   /**
    * Hamburger menu (mobile)
    */
   get hamburgerMenu(): Locator {
-    return this.page.locator(SELECTORS.header.hamburgerMenu);
+    return this.page.locator(joinSelectors(SELECTORS.header.hamburgerMenu));
   }
 
   /**
    * Main navigation
    */
   get mainNavigation(): Locator {
-    return this.page.locator(SELECTORS.navigation.mainNav);
+    return this.page.locator(joinSelectors(SELECTORS.navigation.mainNav));
   }
 
   /**
    * Category menu
    */
   get categoryMenu(): Locator {
-    return this.page.locator(SELECTORS.navigation.categoryMenu);
+    return this.page.locator(joinSelectors(SELECTORS.navigation.categoryMenu));
   }
 
   /**
    * Logo link
    */
   get logo(): Locator {
-    return this.page.locator(SELECTORS.header.logo);
+    return this.page.locator(joinSelectors(SELECTORS.header.logo));
   }
 
   // ==================== Actions ====================
@@ -158,7 +158,7 @@ export class HomePage extends BasePage {
     }
 
     // Find category link
-    const categoryLink = this.page.locator(SELECTORS.navigation.categoryLink, {
+    const categoryLink = this.page.locator(joinSelectors(SELECTORS.navigation.categoryLink), {
       hasText: category,
     });
 
@@ -168,7 +168,7 @@ export class HomePage extends BasePage {
       await randomDelay(300, 500);
 
       // Click subcategory
-      const subcategoryLink = this.page.locator(SELECTORS.navigation.subcategoryLink, {
+      const subcategoryLink = this.page.locator(joinSelectors(SELECTORS.navigation.subcategoryLink), {
         hasText: subcategory,
       });
       await humanClick(subcategoryLink);
@@ -268,7 +268,7 @@ export class HomePage extends BasePage {
     await randomDelay(300, 500);
 
     // Wait for drawer to open
-    const drawer = this.page.locator(SELECTORS.mobile.menuDrawer);
+    const drawer = this.page.locator(joinSelectors(SELECTORS.mobile.menuDrawer));
     await drawer.waitFor({ state: 'visible' });
   }
 
@@ -276,7 +276,7 @@ export class HomePage extends BasePage {
    * Close mobile menu
    */
   async closeMobileMenu(): Promise<void> {
-    const closeBtn = this.page.locator(SELECTORS.mobile.menuClose);
+    const closeBtn = this.page.locator(joinSelectors(SELECTORS.mobile.menuClose));
 
     if (await closeBtn.isVisible()) {
       await humanClick(closeBtn);
@@ -296,7 +296,7 @@ export class HomePage extends BasePage {
     await this.openMobileMenu();
     await randomDelay(200, 400);
 
-    const categoryLink = this.page.locator(SELECTORS.mobile.categoryLink, {
+    const categoryLink = this.page.locator(joinSelectors(SELECTORS.mobile.categoryLink), {
       hasText: category,
     });
     await humanClick(categoryLink);

@@ -10,7 +10,7 @@ import { BasePage } from './base.page';
 import { SELECTORS } from '../config/selectors';
 import { URLS } from '../config/urls';
 import { humanClick, randomDelay } from '../utils/human-like';
-import { firstWorkingLocator } from '../utils/locator-helper';
+import { firstWorkingLocator, joinSelectors } from '../utils/locator-helper';
 import { parsePrice, calculateTotal, pricesEqual } from '../utils/price-utils';
 import { waitForCartUpdate, waitForContentUpdate } from '../utils/wait-utils';
 
@@ -35,56 +35,56 @@ export class CartPage extends BasePage {
    * Cart container
    */
   get cartContainer(): Locator {
-    return this.page.locator(SELECTORS.cart.container);
+    return this.page.locator(joinSelectors(SELECTORS.cart.container));
   }
 
   /**
    * All cart items
    */
   get cartItems(): Locator {
-    return this.page.locator(SELECTORS.cart.item);
+    return this.page.locator(joinSelectors(SELECTORS.cart.item));
   }
 
   /**
    * Cart total price
    */
   get totalPrice(): Locator {
-    return this.page.locator(SELECTORS.cart.total);
+    return this.page.locator(joinSelectors(SELECTORS.cart.total));
   }
 
   /**
    * Empty cart message
    */
   get emptyCartMessage(): Locator {
-    return this.page.locator(SELECTORS.cart.emptyState);
+    return this.page.locator(joinSelectors(SELECTORS.cart.emptyState));
   }
 
   /**
    * Checkout button
    */
   get checkoutButton(): Locator {
-    return this.page.locator(SELECTORS.cart.checkoutBtn);
+    return this.page.locator(joinSelectors(SELECTORS.cart.checkoutBtn));
   }
 
   /**
    * Continue shopping link
    */
   get continueShoppingLink(): Locator {
-    return this.page.locator(SELECTORS.cart.continueShopping);
+    return this.page.locator(joinSelectors(SELECTORS.cart.continueShopping));
   }
 
   /**
    * Promo code input
    */
   get promoCodeInput(): Locator {
-    return this.page.locator(SELECTORS.cart.promoCode);
+    return this.page.locator(joinSelectors(SELECTORS.cart.promoCode));
   }
 
   /**
    * Apply promo button
    */
   get applyPromoButton(): Locator {
-    return this.page.locator(SELECTORS.cart.applyPromo);
+    return this.page.locator(joinSelectors(SELECTORS.cart.applyPromo));
   }
 
   // ==================== Actions ====================
@@ -142,7 +142,7 @@ export class CartPage extends BasePage {
    */
   async getItemTitle(index: number): Promise<string> {
     const item = this.getCartItem(index);
-    const titleEl = item.locator(SELECTORS.cart.itemTitle);
+    const titleEl = item.locator(joinSelectors(SELECTORS.cart.itemTitle));
     return (await titleEl.textContent()) || '';
   }
 
@@ -153,7 +153,7 @@ export class CartPage extends BasePage {
    */
   async getItemPrice(index: number): Promise<number> {
     const item = this.getCartItem(index);
-    const priceEl = item.locator(SELECTORS.cart.itemPrice);
+    const priceEl = item.locator(joinSelectors(SELECTORS.cart.itemPrice));
     const priceText = (await priceEl.textContent()) || '0';
     return parsePrice(priceText);
   }
@@ -165,7 +165,7 @@ export class CartPage extends BasePage {
    */
   async getItemQuantity(index: number): Promise<number> {
     const item = this.getCartItem(index);
-    const qtyEl = item.locator(SELECTORS.cart.quantity);
+    const qtyEl = item.locator(joinSelectors(SELECTORS.cart.quantity));
     const value = await qtyEl.inputValue();
     return parseInt(value, 10) || 1;
   }
@@ -176,7 +176,7 @@ export class CartPage extends BasePage {
    */
   async increaseQuantity(index: number): Promise<void> {
     const item = this.getCartItem(index);
-    const plusBtn = item.locator(SELECTORS.cart.increaseBtn);
+    const plusBtn = item.locator(joinSelectors(SELECTORS.cart.increaseBtn));
     await humanClick(plusBtn);
     await waitForCartUpdate(this.page);
   }
@@ -187,7 +187,7 @@ export class CartPage extends BasePage {
    */
   async decreaseQuantity(index: number): Promise<void> {
     const item = this.getCartItem(index);
-    const minusBtn = item.locator(SELECTORS.cart.decreaseBtn);
+    const minusBtn = item.locator(joinSelectors(SELECTORS.cart.decreaseBtn));
     await humanClick(minusBtn);
     await waitForCartUpdate(this.page);
   }
@@ -219,7 +219,7 @@ export class CartPage extends BasePage {
    */
   async removeItem(index: number): Promise<void> {
     const item = this.getCartItem(index);
-    const removeBtn = item.locator(SELECTORS.cart.removeBtn);
+    const removeBtn = item.locator(joinSelectors(SELECTORS.cart.removeBtn));
     await humanClick(removeBtn);
     await waitForCartUpdate(this.page);
     await randomDelay(300, 500);
@@ -326,7 +326,7 @@ export class CartPage extends BasePage {
    */
   async getQuantityDisplayText(index: number): Promise<string> {
     const item = this.getCartItem(index);
-    const qtyEl = item.locator(SELECTORS.cart.quantity);
+    const qtyEl = item.locator(joinSelectors(SELECTORS.cart.quantity));
     return (await qtyEl.inputValue()) || '';
   }
 }

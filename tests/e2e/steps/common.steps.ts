@@ -14,6 +14,7 @@ import { SELECTORS } from '../../shared/config/selectors';
 import { humanClick, humanWaitForContent, randomDelay } from '../../shared/utils/human-like';
 import { waitForPageLoad, waitForContentUpdate } from '../../shared/utils/wait-utils';
 import { detectLanguageFromUrl } from '../../shared/utils/language-utils';
+import { joinSelectors } from '../../shared/utils/locator-helper';
 
 // ==================== Navigation ====================
 
@@ -167,12 +168,12 @@ Then('the {string} button should be visible', async function (
 
   // Key business strings: avoid direct has-text for stability/localization.
   if (normalized.includes('adaug') || /co[sș]/i.test(buttonText) || normalized.includes('корзин')) {
-    await expect(this.page.locator(SELECTORS.product.addToCart).first()).toBeVisible({ timeout: 10000 });
+    await expect(this.page.locator(joinSelectors(SELECTORS.product.addToCart)).first()).toBeVisible({ timeout: 10000 });
     return;
   }
 
   if (normalized.includes('cump') && normalized.includes('credit')) {
-    await expect(this.page.locator(SELECTORS.product.buyCredit).first()).toBeVisible({ timeout: 10000 });
+    await expect(this.page.locator(joinSelectors(SELECTORS.product.buyCredit)).first()).toBeVisible({ timeout: 10000 });
     return;
   }
 
@@ -189,12 +190,12 @@ Then('the {string} button should still be visible', async function (
   const normalized = buttonText.trim().toLowerCase();
 
   if (normalized.includes('adaug') || /co[sș]/i.test(buttonText) || normalized.includes('корзин')) {
-    await expect(this.page.locator(SELECTORS.product.addToCart).first()).toBeVisible();
+    await expect(this.page.locator(joinSelectors(SELECTORS.product.addToCart)).first()).toBeVisible();
     return;
   }
 
   if (normalized.includes('cump') && normalized.includes('credit')) {
-    await expect(this.page.locator(SELECTORS.product.buyCredit).first()).toBeVisible();
+    await expect(this.page.locator(joinSelectors(SELECTORS.product.buyCredit)).first()).toBeVisible();
     return;
   }
 
@@ -212,13 +213,13 @@ When('I click the {string} button', async function (
 
   // Key business strings: route through resilient selectors.
   if (normalized.includes('adaug') || /co[sș]/i.test(buttonText) || normalized.includes('корзин')) {
-    await humanClick(this.page.locator(SELECTORS.product.addToCart).first());
+    await humanClick(this.page.locator(joinSelectors(SELECTORS.product.addToCart)).first());
     await randomDelay(300, 600);
     return;
   }
 
   if (normalized.includes('cump') && normalized.includes('credit')) {
-    await humanClick(this.page.locator(SELECTORS.product.buyCredit).first());
+    await humanClick(this.page.locator(joinSelectors(SELECTORS.product.buyCredit)).first());
     await randomDelay(300, 600);
     return;
   }

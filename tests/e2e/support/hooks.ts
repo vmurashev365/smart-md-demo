@@ -214,7 +214,7 @@ AfterStep(async function (this: CustomWorld, { result, pickleStep }) {
 Before({ tags: '@mobile' }, async function (this: CustomWorld) {
   // Set default mobile device if not already set
   if (!this.currentDevice) {
-    this.setDevice('iPhone 14');
+    this.setDevice(this.defaultDevice || 'iPhone 14');
   }
 });
 

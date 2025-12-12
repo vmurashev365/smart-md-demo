@@ -10,6 +10,7 @@
 import { Page, Locator } from '@playwright/test';
 import { SELECTORS } from '../../config/selectors';
 import { humanClick, randomDelay } from '../../utils/human-like';
+import { joinSelectors } from '../../utils/locator-helper';
 
 /**
  * Mobile Menu Component class
@@ -23,56 +24,56 @@ export class MobileMenuComponent {
    * Menu drawer container
    */
   get drawer(): Locator {
-    return this.page.locator(SELECTORS.mobile.menuDrawer);
+    return this.page.locator(joinSelectors(SELECTORS.mobile.menuDrawer));
   }
 
   /**
    * Close button
    */
   get closeButton(): Locator {
-    return this.page.locator(SELECTORS.mobile.menuClose);
+    return this.page.locator(joinSelectors(SELECTORS.mobile.menuClose));
   }
 
   /**
    * Category links
    */
   get categoryLinks(): Locator {
-    return this.page.locator(SELECTORS.mobile.categoryLink);
+    return this.page.locator(joinSelectors(SELECTORS.mobile.categoryLink));
   }
 
   /**
    * Back button (for nested menus)
    */
   get backButton(): Locator {
-    return this.page.locator(SELECTORS.mobile.backButton);
+    return this.page.locator(joinSelectors(SELECTORS.mobile.backButton));
   }
 
   /**
    * Mobile search
    */
   get searchInput(): Locator {
-    return this.page.locator(SELECTORS.mobile.mobileSearch);
+    return this.page.locator(joinSelectors(SELECTORS.mobile.mobileSearch));
   }
 
   /**
    * Mobile cart icon
    */
   get cartIcon(): Locator {
-    return this.page.locator(SELECTORS.mobile.mobileCart);
+    return this.page.locator(joinSelectors(SELECTORS.mobile.mobileCart));
   }
 
   /**
    * Bottom navigation
    */
   get bottomNav(): Locator {
-    return this.page.locator(SELECTORS.mobile.bottomNav);
+    return this.page.locator(joinSelectors(SELECTORS.mobile.bottomNav));
   }
 
   /**
    * Desktop navigation (to verify it's hidden on mobile)
    */
   get desktopNav(): Locator {
-    return this.page.locator(SELECTORS.mobile.desktopNav);
+    return this.page.locator(joinSelectors(SELECTORS.mobile.desktopNav));
   }
 
   // ==================== Actions ====================

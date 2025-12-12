@@ -16,6 +16,7 @@ import { SELECTORS } from '../../shared/config/selectors';
 import { humanWaitForContent } from '../../shared/utils/human-like';
 import { waitForPageLoad } from '../../shared/utils/wait-utils';
 import { detectTextLanguage, containsCyrillic } from '../../shared/utils/language-utils';
+import { joinSelectors } from '../../shared/utils/locator-helper';
 
 // ==================== Category Navigation ====================
 
@@ -212,7 +213,7 @@ Then('the mobile layout should be displayed', async function (this: CustomWorld)
 });
 
 Then('the hamburger menu icon should be visible', async function (this: CustomWorld) {
-  const hamburger = this.page.locator(SELECTORS.header.hamburgerMenu);
+  const hamburger = this.page.locator(joinSelectors(SELECTORS.header.hamburgerMenu));
   await expect(hamburger).toBeVisible();
 });
 
@@ -230,7 +231,7 @@ Then('the desktop navigation should be hidden', async function (this: CustomWorl
 
 Then('the desktop navigation should not be visible', async function (this: CustomWorld) {
   // Alternative: Check CSS display/visibility
-  const desktopNav = this.page.locator(SELECTORS.mobile.desktopNav);
+  const desktopNav = this.page.locator(joinSelectors(SELECTORS.mobile.desktopNav));
   const count = await desktopNav.count();
 
   if (count === 0) {

@@ -4,7 +4,7 @@ Enterprise-grade Smoke Testing Framework for Smart.md - Moldova's largest electr
 
 ## 🏗️ Architecture
 
-```
+```text
                     ┌─────────────────────────────────────┐
                     │         BDD Feature Files           │
                     │    (Gherkin - Business Language)    │
@@ -77,6 +77,15 @@ npm run test:critical
 # Run mobile tests
 npm run test:mobile
 
+# Run mobile tests (iOS-like device emulation)
+npm run test:mobile:ios
+
+# Run mobile tests (Android-like device emulation)
+npm run test:mobile:android
+
+# Run mobile tests for both (iOS then Android)
+npm run test:mobile:all
+
 # Run with visible browser
 npm run test:headed
 
@@ -86,7 +95,7 @@ npm run cucumber -- tests/e2e/features/shopping-flow.feature
 
 ## 📁 Project Structure
 
-```
+```text
 smart-md-demo/
 ├── tests/
 │   ├── e2e/
@@ -257,6 +266,7 @@ await addToCart.click();
 ### Language-Agnostic Assertions
 
 Tests avoid hardcoded UI text for key business strings. Instead, they:
+
 - Check selectors (not exact text like `"Coșul este gol"`)
 - Use URL patterns for product identification
 - Support both RO and RU variants
@@ -361,6 +371,7 @@ npm run format
 ### GitHub Actions
 
 Tests run automatically on:
+
 - Push to `main` or `develop`
 - Pull requests
 - Daily schedule (8:00 UTC)

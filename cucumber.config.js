@@ -60,6 +60,26 @@ module.exports = {
       device: 'iPhone 14',
     },
   },
+
+  // Mobile suite on iOS-like device emulation
+  mobile_ios: {
+    ...common,
+    tags: '@mobile',
+    worldParameters: {
+      ...common.worldParameters,
+      device: 'iPhone 14',
+    },
+  },
+
+  // Mobile suite on Android-like device emulation
+  mobile_android: {
+    ...common,
+    tags: '@mobile',
+    worldParameters: {
+      ...common.worldParameters,
+      device: 'Pixel 5',
+    },
+  },
   
   e2e: {
     ...common,

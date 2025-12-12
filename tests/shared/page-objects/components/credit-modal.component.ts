@@ -12,6 +12,7 @@ import { SELECTORS } from '../../config/selectors';
 import { humanClick, humanSelectOption, randomDelay } from '../../utils/human-like';
 import { parsePrice, validateMonthlyPayment } from '../../utils/price-utils';
 import { waitForContentUpdate } from '../../utils/wait-utils';
+import { joinSelectors } from '../../utils/locator-helper';
 
 /**
  * Credit provider data interface
@@ -33,70 +34,70 @@ export class CreditModalComponent {
    * Modal container
    */
   get modal(): Locator {
-    return this.page.locator(SELECTORS.creditModal.modal);
+    return this.page.locator(joinSelectors(SELECTORS.creditModal.modal));
   }
 
   /**
    * Modal content
    */
   get modalContent(): Locator {
-    return this.page.locator(SELECTORS.creditModal.modalContent);
+    return this.page.locator(joinSelectors(SELECTORS.creditModal.modalContent));
   }
 
   /**
    * Monthly payment display
    */
   get monthlyPayment(): Locator {
-    return this.page.locator(SELECTORS.creditModal.monthlyPayment);
+    return this.page.locator(joinSelectors(SELECTORS.creditModal.monthlyPayment));
   }
 
   /**
    * Total amount display
    */
   get totalAmount(): Locator {
-    return this.page.locator(SELECTORS.creditModal.totalAmount);
+    return this.page.locator(joinSelectors(SELECTORS.creditModal.totalAmount));
   }
 
   /**
    * Credit provider options
    */
   get providers(): Locator {
-    return this.page.locator(SELECTORS.creditModal.providers);
+    return this.page.locator(joinSelectors(SELECTORS.creditModal.providers));
   }
 
   /**
    * Payment term selector
    */
   get termSelector(): Locator {
-    return this.page.locator(SELECTORS.creditModal.termSelector);
+    return this.page.locator(joinSelectors(SELECTORS.creditModal.termSelector));
   }
 
   /**
    * Interest rate display
    */
   get interestRate(): Locator {
-    return this.page.locator(SELECTORS.creditModal.interestRate);
+    return this.page.locator(joinSelectors(SELECTORS.creditModal.interestRate));
   }
 
   /**
    * Apply for credit button
    */
   get applyButton(): Locator {
-    return this.page.locator(SELECTORS.creditModal.applyButton);
+    return this.page.locator(joinSelectors(SELECTORS.creditModal.applyButton));
   }
 
   /**
    * Close modal button
    */
   get closeButton(): Locator {
-    return this.page.locator(SELECTORS.creditModal.closeButton);
+    return this.page.locator(joinSelectors(SELECTORS.creditModal.closeButton));
   }
 
   /**
    * Modal overlay
    */
   get overlay(): Locator {
-    return this.page.locator(SELECTORS.creditModal.overlay);
+    return this.page.locator(joinSelectors(SELECTORS.creditModal.overlay));
   }
 
   /**
@@ -213,7 +214,7 @@ export class CreditModalComponent {
 
     for (let i = 0; i < count; i++) {
       const provider = this.providers.nth(i);
-      const nameEl = provider.locator(SELECTORS.creditModal.providerName);
+      const nameEl = provider.locator(joinSelectors(SELECTORS.creditModal.providerName));
 
       let name: string;
       if (await nameEl.isVisible()) {
@@ -320,7 +321,7 @@ export class CreditModalComponent {
       }
     } else {
       // Get from custom selector
-      const options = this.page.locator(SELECTORS.creditModal.termOption);
+      const options = this.page.locator(joinSelectors(SELECTORS.creditModal.termOption));
       const count = await options.count();
 
       for (let i = 0; i < count; i++) {

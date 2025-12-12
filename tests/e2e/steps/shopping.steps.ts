@@ -16,6 +16,7 @@ import { SELECTORS } from '../../shared/config/selectors';
 import { humanWaitForContent, randomDelay } from '../../shared/utils/human-like';
 import { waitForSearchResults } from '../../shared/utils/wait-utils';
 import { pricesEqual, calculateTotal } from '../../shared/utils/price-utils';
+import { joinSelectors } from '../../shared/utils/locator-helper';
 
 // ==================== Search ====================
 
@@ -78,8 +79,8 @@ When('I click the add to cart button', async function (this: CustomWorld) {
 Then('I should see a cart confirmation message', async function (this: CustomWorld) {
   // Wait for confirmation popup or toast
   const confirmation = this.page.locator(
-    `${SELECTORS.cartPopup.message}, ` +
-    `${SELECTORS.common.toast}, ` +
+    `${joinSelectors(SELECTORS.cartPopup.message)}, ` +
+    `${joinSelectors(SELECTORS.common.toast)}, ` +
     `.cart-notification, ` +
     `.added-to-cart`
   );
@@ -89,7 +90,7 @@ Then('I should see a cart confirmation message', async function (this: CustomWor
     await confirmation.first().waitFor({ state: 'visible', timeout: 5000 });
   } catch {
     // If no popup, just verify cart was updated
-    const cartCount = this.page.locator(SELECTORS.header.cartCount);
+    const cartCount = this.page.locator(joinSelectors(SELECTORS.header.cartCount));
     await expect(cartCount).toBeVisible({ timeout: 5000 });
   }
   
@@ -235,7 +236,7 @@ Then('the cart should be empty', async function (this: CustomWorld) {
 
 Then('the cart should show empty state', async function (this: CustomWorld) {
   // Use selector-based check instead of text matching
-  const emptyStateIndicators = this.page.locator(SELECTORS.cart.emptyState);
+  const emptyStateIndicators = this.page.locator(joinSelectors(SELECTORS.cart.emptyState));
 
   try {
     await expect(emptyStateIndicators.first()).toBeVisible({ timeout: 5000 });
@@ -254,7 +255,7 @@ Then('I should see {string} message', async function (this: CustomWorld, message
 
 Then('I should see empty cart message', async function (this: CustomWorld) {
   // Language-agnostic check using selectors
-  const emptyMessage = this.page.locator(SELECTORS.cart.emptyState);
+  const emptyMessage = this.page.locator(joinSelectors(SELECTORS.cart.emptyState));
 
   try {
     await expect(emptyMessage.first()).toBeVisible({ timeout: 5000 });

@@ -9,6 +9,7 @@ import { Page, Locator } from '@playwright/test';
 import { SELECTORS } from '../../config/selectors';
 import { humanClick, humanType, randomDelay } from '../../utils/human-like';
 import { waitForProductListUpdate } from '../../utils/wait-utils';
+import { joinSelectors } from '../../utils/locator-helper';
 
 /**
  * Filter Sidebar Component class
@@ -22,49 +23,49 @@ export class FilterSidebarComponent {
    * Sidebar container
    */
   get container(): Locator {
-    return this.page.locator(SELECTORS.catalog.filterSidebar);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.filterSidebar));
   }
 
   /**
    * Brand filter section
    */
   get brandFilter(): Locator {
-    return this.page.locator(SELECTORS.catalog.brandFilter);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.brandFilter));
   }
 
   /**
    * Price filter section
    */
   get priceFilter(): Locator {
-    return this.page.locator(SELECTORS.catalog.priceFilter);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.priceFilter));
   }
 
   /**
    * Color filter section
    */
   get colorFilter(): Locator {
-    return this.page.locator(SELECTORS.catalog.colorFilter);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.colorFilter));
   }
 
   /**
    * Active filter tags
    */
   get activeFilters(): Locator {
-    return this.page.locator(SELECTORS.catalog.activeFilters);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.activeFilters));
   }
 
   /**
    * Filter tags
    */
   get filterTags(): Locator {
-    return this.page.locator(SELECTORS.catalog.filterTag);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.filterTag));
   }
 
   /**
    * Clear filters button
    */
   get clearButton(): Locator {
-    return this.page.locator(SELECTORS.catalog.clearFilters);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.clearFilters));
   }
 
   // ==================== Actions ====================

@@ -9,7 +9,7 @@ import { Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS } from '../config/selectors';
 import { humanClick, randomDelay } from '../utils/human-like';
-import { firstWorkingLocator } from '../utils/locator-helper';
+import { firstWorkingLocator, joinSelectors } from '../utils/locator-helper';
 import { parsePrice, qualifiesForCredit } from '../utils/price-utils';
 import { waitForCartUpdate, waitForModal } from '../utils/wait-utils';
 
@@ -23,119 +23,119 @@ export class ProductDetailPage extends BasePage {
    * Product container
    */
   get productContainer(): Locator {
-    return this.page.locator(SELECTORS.product.container);
+    return this.page.locator(joinSelectors(SELECTORS.product.container));
   }
 
   /**
    * Product title
    */
   get productTitle(): Locator {
-    return this.page.locator(SELECTORS.product.title);
+    return this.page.locator(joinSelectors(SELECTORS.product.title));
   }
 
   /**
    * Product price
    */
   get productPrice(): Locator {
-    return this.page.locator(SELECTORS.product.price);
+    return this.page.locator(joinSelectors(SELECTORS.product.price));
   }
 
   /**
    * Old price (if discounted)
    */
   get oldPrice(): Locator {
-    return this.page.locator(SELECTORS.product.oldPrice);
+    return this.page.locator(joinSelectors(SELECTORS.product.oldPrice));
   }
 
   /**
    * Discount badge
    */
   get discountBadge(): Locator {
-    return this.page.locator(SELECTORS.product.discount);
+    return this.page.locator(joinSelectors(SELECTORS.product.discount));
   }
 
   /**
    * Add to cart button
    */
   get addToCartButton(): Locator {
-    return this.page.locator(SELECTORS.product.addToCart);
+    return this.page.locator(joinSelectors(SELECTORS.product.addToCart));
   }
 
   /**
    * Buy on credit button
    */
   get buyOnCreditButton(): Locator {
-    return this.page.locator(SELECTORS.product.buyCredit);
+    return this.page.locator(joinSelectors(SELECTORS.product.buyCredit));
   }
 
   /**
    * Buy in one click button
    */
   get buyOneClickButton(): Locator {
-    return this.page.locator(SELECTORS.product.buyOneClick);
+    return this.page.locator(joinSelectors(SELECTORS.product.buyOneClick));
   }
 
   /**
    * Quantity input
    */
   get quantityInput(): Locator {
-    return this.page.locator(SELECTORS.product.quantity);
+    return this.page.locator(joinSelectors(SELECTORS.product.quantity));
   }
 
   /**
    * Increase quantity button
    */
   get quantityPlusButton(): Locator {
-    return this.page.locator(SELECTORS.product.quantityPlus);
+    return this.page.locator(joinSelectors(SELECTORS.product.quantityPlus));
   }
 
   /**
    * Decrease quantity button
    */
   get quantityMinusButton(): Locator {
-    return this.page.locator(SELECTORS.product.quantityMinus);
+    return this.page.locator(joinSelectors(SELECTORS.product.quantityMinus));
   }
 
   /**
    * Product gallery
    */
   get gallery(): Locator {
-    return this.page.locator(SELECTORS.product.gallery);
+    return this.page.locator(joinSelectors(SELECTORS.product.gallery));
   }
 
   /**
    * Main product image
    */
   get mainImage(): Locator {
-    return this.page.locator(SELECTORS.product.mainImage);
+    return this.page.locator(joinSelectors(SELECTORS.product.mainImage));
   }
 
   /**
    * Product thumbnails
    */
   get thumbnails(): Locator {
-    return this.page.locator(SELECTORS.product.thumbnails);
+    return this.page.locator(joinSelectors(SELECTORS.product.thumbnails));
   }
 
   /**
    * Product description
    */
   get description(): Locator {
-    return this.page.locator(SELECTORS.product.description);
+    return this.page.locator(joinSelectors(SELECTORS.product.description));
   }
 
   /**
    * Product specifications
    */
   get specifications(): Locator {
-    return this.page.locator(SELECTORS.product.specifications);
+    return this.page.locator(joinSelectors(SELECTORS.product.specifications));
   }
 
   /**
    * Availability status
    */
   get availability(): Locator {
-    return this.page.locator(SELECTORS.product.availability);
+    return this.page.locator(joinSelectors(SELECTORS.product.availability));
   }
 
   // ==================== Actions ====================
@@ -192,8 +192,8 @@ export class ProductDetailPage extends BasePage {
    * @returns true if in stock
    */
   async isInStock(): Promise<boolean> {
-    const inStockEl = this.page.locator(SELECTORS.product.inStock);
-    const outOfStockEl = this.page.locator(SELECTORS.product.outOfStock);
+    const inStockEl = this.page.locator(joinSelectors(SELECTORS.product.inStock));
+    const outOfStockEl = this.page.locator(joinSelectors(SELECTORS.product.outOfStock));
 
     if (await outOfStockEl.isVisible()) {
       return false;
@@ -228,7 +228,7 @@ export class ProductDetailPage extends BasePage {
     await randomDelay(200, 400);
 
     await humanClick(this.buyOnCreditButton);
-    await waitForModal(this.page, SELECTORS.creditModal.modal);
+    await waitForModal(this.page, joinSelectors(SELECTORS.creditModal.modal));
     await randomDelay(300, 500);
   }
 
@@ -278,7 +278,7 @@ export class ProductDetailPage extends BasePage {
    * @returns true if swipeable
    */
   async areImagesSwipeable(): Promise<boolean> {
-    const swiper = this.page.locator(SELECTORS.mobile.swipeGallery);
+    const swiper = this.page.locator(joinSelectors(SELECTORS.mobile.swipeGallery));
     return await swiper.isVisible();
   }
 

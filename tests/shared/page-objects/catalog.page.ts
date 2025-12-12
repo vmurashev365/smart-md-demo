@@ -11,6 +11,7 @@ import { SELECTORS } from '../config/selectors';
 import { humanClick, humanSelectOption, randomDelay } from '../utils/human-like';
 import { parsePrice } from '../utils/price-utils';
 import { waitForProductListUpdate } from '../utils/wait-utils';
+import { joinSelectors } from '../utils/locator-helper';
 
 /**
  * Catalog Page class
@@ -22,70 +23,70 @@ export class CatalogPage extends BasePage {
    * Catalog container
    */
   get catalogContainer(): Locator {
-    return this.page.locator(SELECTORS.catalog.container);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.container));
   }
 
   /**
    * All product cards
    */
   get productCards(): Locator {
-    return this.page.locator(SELECTORS.catalog.productCard);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.productCard));
   }
 
   /**
    * Filter sidebar
    */
   get filterSidebar(): Locator {
-    return this.page.locator(SELECTORS.catalog.filterSidebar);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.filterSidebar));
   }
 
   /**
    * Brand filter section
    */
   get brandFilter(): Locator {
-    return this.page.locator(SELECTORS.catalog.brandFilter);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.brandFilter));
   }
 
   /**
    * Price filter section
    */
   get priceFilter(): Locator {
-    return this.page.locator(SELECTORS.catalog.priceFilter);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.priceFilter));
   }
 
   /**
    * Sort dropdown
    */
   get sortDropdown(): Locator {
-    return this.page.locator(SELECTORS.catalog.sortDropdown);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.sortDropdown));
   }
 
   /**
    * Active filters container
    */
   get activeFilters(): Locator {
-    return this.page.locator(SELECTORS.catalog.activeFilters);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.activeFilters));
   }
 
   /**
    * Filter tags
    */
   get filterTags(): Locator {
-    return this.page.locator(SELECTORS.catalog.filterTag);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.filterTag));
   }
 
   /**
    * Clear all filters button
    */
   get clearFiltersButton(): Locator {
-    return this.page.locator(SELECTORS.catalog.clearFilters);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.clearFilters));
   }
 
   /**
    * Product count element
    */
   get productCount(): Locator {
-    return this.page.locator(SELECTORS.catalog.productCount);
+    return this.page.locator(joinSelectors(SELECTORS.catalog.productCount));
   }
 
   // ==================== Actions ====================
@@ -332,7 +333,7 @@ async applyBrandFilter(brand: string): Promise<void> {
    */
   async getProductTitle(index: number): Promise<string> {
     const card = this.getProductCard(index);
-    const titleEl = card.locator(SELECTORS.catalog.productTitle);
+    const titleEl = card.locator(joinSelectors(SELECTORS.catalog.productTitle));
     return (await titleEl.textContent()) || '';
   }
 
@@ -343,7 +344,7 @@ async applyBrandFilter(brand: string): Promise<void> {
    */
   async getProductPrice(index: number): Promise<number> {
     const card = this.getProductCard(index);
-    const priceEl = card.locator(SELECTORS.catalog.productPrice);
+    const priceEl = card.locator(joinSelectors(SELECTORS.catalog.productPrice));
     const priceText = (await priceEl.textContent()) || '0';
     return parsePrice(priceText);
   }
@@ -430,7 +431,7 @@ async applyBrandFilter(brand: string): Promise<void> {
    * @returns true if mobile grid
    */
   async isMobileGrid(): Promise<boolean> {
-    const mobileGrid = this.page.locator(SELECTORS.mobile.productGrid);
+    const mobileGrid = this.page.locator(joinSelectors(SELECTORS.mobile.productGrid));
     return await mobileGrid.isVisible();
   }
 

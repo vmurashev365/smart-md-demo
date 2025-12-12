@@ -8,7 +8,7 @@
 import { Page, Locator } from '@playwright/test';
 import { SELECTORS } from '../../config/selectors';
 import { humanClick, humanType, randomDelay } from '../../utils/human-like';
-import { firstWorkingLocator } from '../../utils/locator-helper';
+import { firstWorkingLocator, joinSelectors } from '../../utils/locator-helper';
 
 /**
  * Header Component class
@@ -22,70 +22,70 @@ export class HeaderComponent {
    * Header container
    */
   get container(): Locator {
-    return this.page.locator(SELECTORS.header.container);
+    return this.page.locator(joinSelectors(SELECTORS.header.container));
   }
 
   /**
    * Logo
    */
   get logo(): Locator {
-    return this.page.locator(SELECTORS.header.logo);
+    return this.page.locator(joinSelectors(SELECTORS.header.logo));
   }
 
   /**
    * Search input
    */
   get searchInput(): Locator {
-    return this.page.locator(SELECTORS.header.searchInput);
+    return this.page.locator(joinSelectors(SELECTORS.header.searchInput));
   }
 
   /**
    * Search button
    */
   get searchButton(): Locator {
-    return this.page.locator(SELECTORS.header.searchButton);
+    return this.page.locator(joinSelectors(SELECTORS.header.searchButton));
   }
 
   /**
    * Cart icon
    */
   get cartIcon(): Locator {
-    return this.page.locator(SELECTORS.header.cartIcon);
+    return this.page.locator(joinSelectors(SELECTORS.header.cartIcon));
   }
 
   /**
    * Cart count badge
    */
   get cartCount(): Locator {
-    return this.page.locator(SELECTORS.header.cartCount);
+    return this.page.locator(joinSelectors(SELECTORS.header.cartCount));
   }
 
   /**
    * Language switcher
    */
   get languageSwitcher(): Locator {
-    return this.page.locator(SELECTORS.header.languageSwitcher);
+    return this.page.locator(joinSelectors(SELECTORS.header.languageSwitcher));
   }
 
   /**
    * Hamburger menu button
    */
   get hamburgerMenu(): Locator {
-    return this.page.locator(SELECTORS.header.hamburgerMenu);
+    return this.page.locator(joinSelectors(SELECTORS.header.hamburgerMenu));
   }
 
   /**
    * User menu
    */
   get userMenu(): Locator {
-    return this.page.locator(SELECTORS.header.userMenu);
+    return this.page.locator(joinSelectors(SELECTORS.header.userMenu));
   }
 
   /**
    * Wishlist link
    */
   get wishlist(): Locator {
-    return this.page.locator(SELECTORS.header.wishlist);
+    return this.page.locator(joinSelectors(SELECTORS.header.wishlist));
   }
 
   // ==================== Actions ====================
@@ -151,8 +151,8 @@ export class HeaderComponent {
     // Click target language
     const langLink =
       lang === 'RU'
-        ? this.page.locator(SELECTORS.header.languageRU)
-        : this.page.locator(SELECTORS.header.languageRO);
+        ? this.page.locator(joinSelectors(SELECTORS.header.languageRU))
+        : this.page.locator(joinSelectors(SELECTORS.header.languageRO));
 
     if (await langLink.isVisible()) {
       await humanClick(langLink);

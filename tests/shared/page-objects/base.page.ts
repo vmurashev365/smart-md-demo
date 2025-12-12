@@ -18,6 +18,7 @@ import {
 import { waitForPageLoad, waitForNetworkIdle, waitForLoadersToDisappear } from '../utils/wait-utils';
 import { detectLanguageFromUrl, Language } from '../utils/language-utils';
 import { SELECTORS } from '../config/selectors';
+import { joinSelectors } from '../utils/locator-helper';
 
 /**
  * Base Page class with common functionality
@@ -323,21 +324,21 @@ export abstract class BasePage {
    * Get header element
    */
   get header(): Locator {
-    return this.page.locator(SELECTORS.header.container);
+    return this.page.locator(joinSelectors(SELECTORS.header.container));
   }
 
   /**
    * Get loader element
    */
   get loader(): Locator {
-    return this.page.locator(SELECTORS.common.loader);
+    return this.page.locator(joinSelectors(SELECTORS.common.loader));
   }
 
   /**
    * Get toast/notification element
    */
   get toast(): Locator {
-    return this.page.locator(SELECTORS.common.toast);
+    return this.page.locator(joinSelectors(SELECTORS.common.toast));
   }
 }
 

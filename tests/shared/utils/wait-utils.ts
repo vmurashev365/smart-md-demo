@@ -7,6 +7,7 @@
 
 import { Page, Locator, expect } from '@playwright/test';
 import { SELECTORS } from '../config/selectors';
+import { joinSelectors } from './locator-helper';
 
 /**
  * Default timeout values
@@ -48,7 +49,7 @@ export async function waitForLoadersToDisappear(
   page: Page,
   timeout: number = TIMEOUTS.medium
 ): Promise<void> {
-  const loaderSelector = SELECTORS.common.loader;
+  const loaderSelector = joinSelectors(SELECTORS.common.loader);
   const loader = page.locator(loaderSelector);
 
   try {
@@ -70,7 +71,7 @@ export async function waitForSkeletonsToDisappear(
   page: Page,
   timeout: number = TIMEOUTS.medium
 ): Promise<void> {
-  const skeletonSelector = SELECTORS.common.skeleton;
+  const skeletonSelector = joinSelectors(SELECTORS.common.skeleton);
   const skeleton = page.locator(skeletonSelector);
 
   try {
@@ -233,7 +234,7 @@ export async function waitForProductListUpdate(
   await waitForNetworkIdle(page, timeout);
 
   // Wait for product cards to be visible
-  const productCards = page.locator(SELECTORS.catalog.productCard);
+  const productCards = page.locator(joinSelectors(SELECTORS.catalog.productCard));
   await waitForMinimumElements(productCards, 1, timeout);
 
   // Wait for loaders
@@ -248,7 +249,7 @@ export async function waitForProductListUpdate(
  */
 export async function waitForModal(
   page: Page,
-  modalSelector: string = SELECTORS.common.modal,
+  modalSelector: string = joinSelectors(SELECTORS.common.modal),
   timeout: number = TIMEOUTS.medium
 ): Promise<void> {
   const modal = page.locator(modalSelector);
@@ -266,7 +267,7 @@ export async function waitForModal(
  */
 export async function waitForModalClose(
   page: Page,
-  modalSelector: string = SELECTORS.common.modal,
+  modalSelector: string = joinSelectors(SELECTORS.common.modal),
   timeout: number = TIMEOUTS.medium
 ): Promise<void> {
   const modal = page.locator(modalSelector);
@@ -310,8 +311,8 @@ export async function waitForSearchResults(
 ): Promise<void> {
   await waitForNetworkIdle(page, timeout);
 
-  const productCards = page.locator(SELECTORS.searchResults.productCard);
-  const noResults = page.locator(SELECTORS.searchResults.noResults);
+  const productCards = page.locator(joinSelectors(SELECTORS.searchResults.productCard));
+  const noResults = page.locator(joinSelectors(SELECTORS.searchResults.noResults));
 
   // Wait for either results or "no results" message
   await Promise.race([

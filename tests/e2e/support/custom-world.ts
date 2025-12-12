@@ -55,6 +55,11 @@ export class CustomWorld extends World {
   currentDevice: string | null = null;
 
   /**
+   * Default device name provided via worldParameters (optional)
+   */
+  defaultDevice: string | null = null;
+
+  /**
    * Test start time
    */
   testStartTime: number = Date.now();
@@ -90,6 +95,11 @@ export class CustomWorld extends World {
     this.headless = options.parameters.headless ?? false;
     this.slowMo = options.parameters.slowMo ?? 50;
     this.humanLikeMode = options.parameters.humanLikeMode ?? true;
+
+    this.defaultDevice = options.parameters.device ?? null;
+    if (this.defaultDevice) {
+      this.setDevice(this.defaultDevice);
+    }
   }
 
   /**

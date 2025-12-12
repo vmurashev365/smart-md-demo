@@ -11,6 +11,7 @@ import { SELECTORS } from '../config/selectors';
 import { humanClick, randomDelay } from '../utils/human-like';
 import { parsePrice } from '../utils/price-utils';
 import { waitForProductListUpdate } from '../utils/wait-utils';
+import { joinSelectors } from '../utils/locator-helper';
 
 /**
  * Product card data interface
@@ -32,49 +33,49 @@ export class SearchResultsPage extends BasePage {
    * Search results container
    */
   get resultsContainer(): Locator {
-    return this.page.locator(SELECTORS.searchResults.container);
+    return this.page.locator(joinSelectors(SELECTORS.searchResults.container));
   }
 
   /**
    * Product grid
    */
   get productGrid(): Locator {
-    return this.page.locator(SELECTORS.searchResults.productGrid);
+    return this.page.locator(joinSelectors(SELECTORS.searchResults.productGrid));
   }
 
   /**
    * All product cards
    */
   get productCards(): Locator {
-    return this.page.locator(SELECTORS.searchResults.productCard);
+    return this.page.locator(joinSelectors(SELECTORS.searchResults.productCard));
   }
 
   /**
    * Result count element
    */
   get resultCount(): Locator {
-    return this.page.locator(SELECTORS.searchResults.resultCount);
+    return this.page.locator(joinSelectors(SELECTORS.searchResults.resultCount));
   }
 
   /**
    * No results message
    */
   get noResultsMessage(): Locator {
-    return this.page.locator(SELECTORS.searchResults.noResults);
+    return this.page.locator(joinSelectors(SELECTORS.searchResults.noResults));
   }
 
   /**
    * Pagination
    */
   get pagination(): Locator {
-    return this.page.locator(SELECTORS.searchResults.pagination);
+    return this.page.locator(joinSelectors(SELECTORS.searchResults.pagination));
   }
 
   /**
    * Load more button
    */
   get loadMoreButton(): Locator {
-    return this.page.locator(SELECTORS.searchResults.loadMore);
+    return this.page.locator(joinSelectors(SELECTORS.searchResults.loadMore));
   }
 
   // ==================== Actions ====================
@@ -137,7 +138,7 @@ export class SearchResultsPage extends BasePage {
    */
   async clickProduct(index: number): Promise<void> {
     const product = this.getProductCard(index);
-    const productLink = product.locator(SELECTORS.searchResults.productLink);
+    const productLink = product.locator(joinSelectors(SELECTORS.searchResults.productLink));
 
     // Try clicking the link inside the card first
     if (await productLink.isVisible()) {
@@ -164,7 +165,7 @@ export class SearchResultsPage extends BasePage {
    */
   async getProductTitle(index: number): Promise<string> {
     const product = this.getProductCard(index);
-    const titleEl = product.locator(SELECTORS.searchResults.productTitle);
+    const titleEl = product.locator(joinSelectors(SELECTORS.searchResults.productTitle));
     return (await titleEl.textContent()) || '';
   }
 
@@ -175,7 +176,7 @@ export class SearchResultsPage extends BasePage {
    */
   async getProductPrice(index: number): Promise<number> {
     const product = this.getProductCard(index);
-    const priceEl = product.locator(SELECTORS.searchResults.productPrice);
+    const priceEl = product.locator(joinSelectors(SELECTORS.searchResults.productPrice));
     const priceText = (await priceEl.textContent()) || '0';
     return parsePrice(priceText);
   }
@@ -209,7 +210,7 @@ export class SearchResultsPage extends BasePage {
       const product = this.getProductCard(i);
       const title = await this.getProductTitle(i);
       const price = await this.getProductPrice(i);
-      const link = product.locator(SELECTORS.searchResults.productLink);
+      const link = product.locator(joinSelectors(SELECTORS.searchResults.productLink));
       const url = (await link.getAttribute('href')) || '';
 
       products.push({ title, price, url, index: i });
