@@ -13,8 +13,8 @@ import { SearchResultsPage } from '../../shared/page-objects/search-results.page
 import { ProductDetailPage } from '../../shared/page-objects/product-detail.page';
 import { CartPage } from '../../shared/page-objects/cart.page';
 import { SELECTORS } from '../../shared/config/selectors';
-import { humanClick, humanWaitForContent, randomDelay } from '../../shared/utils/human-like';
-import { waitForSearchResults, waitForCartUpdate } from '../../shared/utils/wait-utils';
+import { humanWaitForContent, randomDelay } from '../../shared/utils/human-like';
+import { waitForSearchResults } from '../../shared/utils/wait-utils';
 import { pricesEqual, calculateTotal } from '../../shared/utils/price-utils';
 
 // ==================== Search ====================
@@ -33,7 +33,7 @@ Then('the search results should contain at least {int} products', async function
   const count = await searchResults.getProductCount();
   
   expect(count).toBeGreaterThanOrEqual(minCount);
-  this.log(`Found ${count} products (expected at least ${minCount})`);
+  this.logMessage(`Found ${count} products (expected at least ${minCount})`);
 });
 
 When('I click on the first product in search results', async function (this: CustomWorld) {
@@ -59,7 +59,7 @@ Then('the product price should be greater than {int} MDL', async function (
   const price = await productPage.getPrice();
   
   expect(price).toBeGreaterThan(minPrice);
-  this.log(`Product price: ${price} MDL (minimum: ${minPrice} MDL)`);
+  this.logMessage(`Product price: ${price} MDL (minimum: ${minPrice} MDL)`);
 });
 
 // ==================== Add to Cart ====================
@@ -149,7 +149,7 @@ Then('the cart price should equal the stored {string}', async function (
   
   // Allow small tolerance for price matching
   expect(pricesEqual(cartPrice, storedPrice, 1)).toBe(true);
-  this.log(`Cart price: ${cartPrice} MDL, Stored price: ${storedPrice} MDL`);
+  this.logMessage(`Cart price: ${cartPrice} MDL, Stored price: ${storedPrice} MDL`);
 });
 
 // ==================== Cart Modification ====================

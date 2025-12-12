@@ -5,7 +5,7 @@
  * Handles product list, filtering, and pagination.
  */
 
-import { Page, Locator } from '@playwright/test';
+import { Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS } from '../config/selectors';
 import { humanClick, randomDelay } from '../utils/human-like';
@@ -296,8 +296,9 @@ export class SearchResultsPage extends BasePage {
 
   /**
    * Scroll to load more products (infinite scroll)
+   * @returns Number of new products loaded
    */
-  async scrollToLoadMore(): Promise<void> {
+  async scrollToLoadMore(): Promise<number> {
     const initialCount = await this.getProductCount();
 
     await this.scroll('down');
@@ -306,6 +307,9 @@ export class SearchResultsPage extends BasePage {
 
     // Wait for potential new products
     await this.waitForResults();
+    
+    const newCount = await this.getProductCount();
+    return newCount - initialCount;
   }
 }
 

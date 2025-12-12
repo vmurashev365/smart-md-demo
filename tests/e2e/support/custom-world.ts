@@ -164,7 +164,7 @@ export class CustomWorld extends World {
    * Log a message (for debugging)
    * @param message - Log message
    */
-  log(message: string): void {
+  logMessage(message: string): void {
     if (process.env.DEBUG) {
       const elapsed = Date.now() - this.testStartTime;
       console.log(`[${elapsed}ms] ${message}`);
@@ -192,14 +192,18 @@ export class CustomWorld extends World {
    * @param mediaType - MIME type
    */
   async attachToReport(data: string | Buffer, mediaType: string): Promise<void> {
-    this.attach(data, mediaType);
+    if (typeof data === 'string') {
+      this.attach(data, mediaType);
+    } else {
+      this.attach(data, mediaType);
+    }
   }
 
   /**
    * Take and attach screenshot
-   * @param name - Screenshot name
+   * @param _name - Screenshot name (unused but kept for API compatibility)
    */
-  async attachScreenshot(name: string = 'screenshot'): Promise<void> {
+  async attachScreenshot(_name: string = 'screenshot'): Promise<void> {
     if (this.page) {
       const screenshot = await this.page.screenshot();
       await this.attachToReport(screenshot, 'image/png');

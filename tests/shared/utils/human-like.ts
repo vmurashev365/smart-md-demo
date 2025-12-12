@@ -189,7 +189,11 @@ export async function humanScroll(
  * @param page - Playwright Page
  */
 export async function humanScrollToBottom(page: Page): Promise<void> {
-  const pageHeight = await page.evaluate(() => document.body.scrollHeight);
+  // Document access is inside page.evaluate, which runs in browser context
+  const pageHeight = await page.evaluate(() => {
+    // eslint-disable-next-line no-undef
+    return document.body.scrollHeight;
+  });
   const viewportHeight = page.viewportSize()?.height || 768;
   const scrollSteps = Math.ceil(pageHeight / viewportHeight);
 

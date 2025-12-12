@@ -4,7 +4,7 @@
  * Steps for catalog browsing, filtering, sorting, and mobile navigation.
  */
 
-import { Given, When, Then } from '@cucumber/cucumber';
+import { When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 
 import { CustomWorld } from '../support/custom-world';
@@ -13,8 +13,8 @@ import { CatalogPage } from '../../shared/page-objects/catalog.page';
 import { ProductDetailPage } from '../../shared/page-objects/product-detail.page';
 import { MobileMenuComponent } from '../../shared/page-objects/components/mobile-menu.component';
 import { SELECTORS } from '../../shared/config/selectors';
-import { humanClick, humanWaitForContent, randomDelay } from '../../shared/utils/human-like';
-import { waitForProductListUpdate, waitForPageLoad } from '../../shared/utils/wait-utils';
+import { humanWaitForContent } from '../../shared/utils/human-like';
+import { waitForPageLoad } from '../../shared/utils/wait-utils';
 import { detectTextLanguage, containsCyrillic } from '../../shared/utils/language-utils';
 
 // ==================== Category Navigation ====================
@@ -68,7 +68,7 @@ Then('the product count should be greater than {int}', async function (
   const count = await catalogPage.getProductCount();
   
   expect(count).toBeGreaterThan(minCount);
-  this.log(`Product count: ${count}`);
+  this.logMessage(`Product count: ${count}`);
   
   // Store for later comparison
   this.storeValue('initial_product_count', count);
@@ -119,7 +119,7 @@ Then('the product count should increase', async function (this: CustomWorld) {
   // After clearing filters, count should be >= what it was with filters
   // (could be the same if filter didn't reduce count)
   expect(currentCount).toBeGreaterThanOrEqual(initialCount || 0);
-  this.log(`Product count after clearing: ${currentCount}`);
+  this.logMessage(`Product count after clearing: ${currentCount}`);
 });
 
 Then('no filter tags should be displayed', async function (this: CustomWorld) {
@@ -161,7 +161,7 @@ Then('the first product price should be less than the second product price', asy
   const price2 = await catalogPage.getProductPrice(1);
   
   expect(price1).toBeLessThanOrEqual(price2);
-  this.log(`First: ${price1} MDL, Second: ${price2} MDL`);
+  this.logMessage(`First: ${price1} MDL, Second: ${price2} MDL`);
 });
 
 // ==================== Language / Localization ====================
@@ -177,8 +177,8 @@ Then('the product title should be in Russian', async function (this: CustomWorld
   // So we check the page language indicator instead
   const lang = detectTextLanguage(title);
   
-  this.log(`Product title: ${title}`);
-  this.log(`Detected language: ${lang}`);
+  this.logMessage(`Product title: ${title}`);
+  this.logMessage(`Detected language: ${lang}`);
   
   // Either title is in Russian or URL confirms Russian version
   const urlIsRussian = this.page.url().includes('/ru/');
@@ -288,5 +288,5 @@ Then('the product images should be swipeable', async function (this: CustomWorld
   
   // On mobile, images should be in a swipeable gallery
   // This might not always be true, so we do a soft check
-  this.log(`Images swipeable: ${isSwipeable}`);
+  this.logMessage(`Images swipeable: ${isSwipeable}`);
 });

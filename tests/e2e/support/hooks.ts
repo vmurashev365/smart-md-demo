@@ -17,7 +17,6 @@ import {
   getAntiDetectionArgs,
   getDeviceFingerprint,
 } from '../../shared/utils/browser-fingerprint';
-import { DEVICES } from '../../shared/fixtures/devices';
 
 // Global browser instance
 let browser: Browser;

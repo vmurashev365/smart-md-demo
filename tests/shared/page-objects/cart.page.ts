@@ -5,7 +5,7 @@
  * Handles cart items, quantities, and totals.
  */
 
-import { Page, Locator } from '@playwright/test';
+import { Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS } from '../config/selectors';
 import { URLS } from '../config/urls';

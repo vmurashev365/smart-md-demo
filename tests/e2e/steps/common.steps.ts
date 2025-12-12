@@ -49,7 +49,7 @@ Given('I am using {string} device emulation', async function (
   // Update viewport
   await this.page.setViewportSize(device.viewport);
   
-  this.log(`Device emulation set to: ${deviceName} (${device.viewport.width}x${device.viewport.height})`);
+  this.logMessage(`Device emulation set to: ${deviceName} (${device.viewport.width}x${device.viewport.height})`);
 });
 
 // ==================== Language ====================
@@ -110,7 +110,7 @@ Then('I store the product price as {string}', async function (
   const productPage = new ProductDetailPage(this.page);
   const price = await productPage.getPrice();
   this.storeValue(key, price);
-  this.log(`Stored price: ${price} MDL`);
+  this.logMessage(`Stored price: ${price} MDL`);
 });
 
 // ==================== URL Assertions ====================

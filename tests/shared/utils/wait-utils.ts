@@ -310,7 +310,6 @@ export async function waitForSearchResults(
 ): Promise<void> {
   await waitForNetworkIdle(page, timeout);
 
-  const resultsContainer = page.locator(SELECTORS.searchResults.container);
   const productCards = page.locator(SELECTORS.searchResults.productCard);
   const noResults = page.locator(SELECTORS.searchResults.noResults);
 

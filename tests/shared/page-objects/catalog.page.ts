@@ -5,12 +5,12 @@
  * Handles product filtering, sorting, and browsing.
  */
 
-import { Page, Locator } from '@playwright/test';
+import { Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS } from '../config/selectors';
 import { humanClick, humanSelectOption, randomDelay } from '../utils/human-like';
 import { parsePrice } from '../utils/price-utils';
-import { waitForProductListUpdate, waitForContentUpdate } from '../utils/wait-utils';
+import { waitForProductListUpdate } from '../utils/wait-utils';
 
 /**
  * Catalog Page class

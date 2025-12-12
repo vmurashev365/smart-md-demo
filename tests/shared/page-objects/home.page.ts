@@ -5,13 +5,13 @@
  * Handles search, navigation, language switching, and cart access.
  */
 
-import { Page, Locator } from '@playwright/test';
+import { Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS } from '../config/selectors';
 import { URLS } from '../config/urls';
 import { humanClick, humanType, randomDelay } from '../utils/human-like';
-import { waitForSearchResults, waitForContentUpdate } from '../utils/wait-utils';
-import { Language, getLanguageUrlPrefix } from '../utils/language-utils';
+import { waitForSearchResults } from '../utils/wait-utils';
+import { Language } from '../utils/language-utils';
 
 /**
  * Home Page class

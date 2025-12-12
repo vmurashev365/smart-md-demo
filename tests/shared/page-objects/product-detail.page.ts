@@ -5,10 +5,10 @@
  * Handles product info, add to cart, and credit calculator.
  */
 
-import { Page, Locator } from '@playwright/test';
+import { Locator } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS } from '../config/selectors';
-import { humanClick, humanScroll, randomDelay } from '../utils/human-like';
+import { humanClick, randomDelay } from '../utils/human-like';
 import { parsePrice, qualifiesForCredit } from '../utils/price-utils';
 import { waitForCartUpdate, waitForModal } from '../utils/wait-utils';
 

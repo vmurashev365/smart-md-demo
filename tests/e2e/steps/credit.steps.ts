@@ -4,15 +4,15 @@
  * Steps for Moldova-specific credit/installment payment testing.
  */
 
-import { Given, When, Then, DataTable } from '@cucumber/cucumber';
+import { When, Then, DataTable } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 
 import { CustomWorld } from '../support/custom-world';
 import { ProductDetailPage } from '../../shared/page-objects/product-detail.page';
 import { CreditModalComponent } from '../../shared/page-objects/components/credit-modal.component';
 import { SELECTORS } from '../../shared/config/selectors';
-import { humanClick, randomDelay } from '../../shared/utils/human-like';
-import { waitForModal, waitForModalClose, waitForContentUpdate } from '../../shared/utils/wait-utils';
+import { randomDelay } from '../../shared/utils/human-like';
+import { waitForContentUpdate } from '../../shared/utils/wait-utils';
 import { validateMonthlyPayment } from '../../shared/utils/price-utils';
 
 // ==================== Credit Calculator ====================
@@ -32,7 +32,7 @@ Then('the credit calculator modal should appear', async function (this: CustomWo
   const isVisible = await creditModal.isVisible();
   
   expect(isVisible).toBe(true);
-  this.log('Credit calculator modal opened');
+  this.logMessage('Credit calculator modal opened');
 });
 
 Then('I should see the monthly payment amount', async function (this: CustomWorld) {
@@ -40,7 +40,7 @@ Then('I should see the monthly payment amount', async function (this: CustomWorl
   const monthlyPayment = await creditModal.getMonthlyPayment();
   
   expect(monthlyPayment).toBeGreaterThan(0);
-  this.log(`Monthly payment: ${monthlyPayment} MDL`);
+  this.logMessage(`Monthly payment: ${monthlyPayment} MDL`);
   
   // Store for later assertions
   this.storeValue('monthly_payment', monthlyPayment);
@@ -54,7 +54,7 @@ Then('I should see at least {int} credit provider options', async function (
   const providerCount = await creditModal.getProviderCount();
   
   expect(providerCount).toBeGreaterThanOrEqual(minProviders);
-  this.log(`Found ${providerCount} credit providers`);
+  this.logMessage(`Found ${providerCount} credit providers`);
 });
 
 Then('the credit offers should include one of:', async function (
@@ -69,8 +69,8 @@ Then('the credit offers should include one of:', async function (
   if (!hasAnyProvider) {
     // Get actual providers for debugging
     const actualProviders = await creditModal.getCreditProviders();
-    this.log(`Expected one of: ${expectedProviders.join(', ')}`);
-    this.log(`Found: ${actualProviders.join(', ')}`);
+    this.logMessage(`Expected one of: ${expectedProviders.join(', ')}`);
+    this.logMessage(`Found: ${actualProviders.join(', ')}`);
   }
   
   expect(hasAnyProvider).toBe(true);
@@ -100,19 +100,20 @@ When('I select {string} payment term', async function (
 Then('the monthly payment should be recalculated', async function (this: CustomWorld) {
   const creditModal = new CreditModalComponent(this.page);
   const currentPayment = await creditModal.getMonthlyPayment();
-  const previousPayment = this.getStoredValue<number>('previous_monthly_payment');
+  // Previous payment stored for reference, may be used for comparison if needed
+  void this.getStoredValue<number>('previous_monthly_payment');
   
   // Payment should have changed after term selection
   // (unless it was already on that term)
   expect(currentPayment).toBeGreaterThan(0);
   
   this.storeValue('monthly_payment', currentPayment);
-  this.log(`Monthly payment after term change: ${currentPayment} MDL`);
+  this.logMessage(`Monthly payment after term change: ${currentPayment} MDL`);
 });
 
 Then('the monthly payment should be approximately {string}', async function (
   this: CustomWorld,
-  formula: string
+  _formula: string // Kept for step definition matching, actual calculation uses stored values
 ) {
   const productPrice = this.getStoredValue<number>('product_price');
   const months = this.getStoredValue<number>('selected_term_months') || 12;
@@ -129,8 +130,8 @@ Then('the monthly payment should be approximately {string}', async function (
   
   if (!isValid) {
     const expectedBase = productPrice / months;
-    this.log(`Expected approximately: ${expectedBase} MDL/month`);
-    this.log(`Actual payment: ${actualPayment} MDL/month`);
+    this.logMessage(`Expected approximately: ${expectedBase} MDL/month`);
+    this.logMessage(`Actual payment: ${actualPayment} MDL/month`);
   }
   
   expect(isValid).toBe(true);
@@ -150,7 +151,6 @@ Then('I should be back on the product page', async function (this: CustomWorld) 
   expect(isModalVisible).toBe(false);
   
   // Verify product page elements are visible
-  const productPage = new ProductDetailPage(this.page);
   const title = this.page.locator(SELECTORS.product.title);
   await expect(title).toBeVisible();
 });
@@ -180,7 +180,7 @@ Then('the {string} credit offer should be selected', async function (
   
   // Allow flexible matching - provider might be selected by default
   const isSelected = await selectedProvider.isVisible().catch(() => false);
-  this.log(`Provider ${providerName} selection status: ${isSelected}`);
+  this.logMessage(`Provider ${providerName} selection status: ${isSelected}`);
 });
 
 // ==================== Available Terms ====================
@@ -190,5 +190,5 @@ Then('I should see available payment terms', async function (this: CustomWorld) 
   const terms = await creditModal.getAvailableTerms();
   
   expect(terms.length).toBeGreaterThan(0);
-  this.log(`Available terms: ${terms.join(', ')}`);
+  this.logMessage(`Available terms: ${terms.join(', ')}`);
 });
