@@ -342,6 +342,45 @@ async applyBrandFilter(brand: string): Promise<void> {
     const titleEl = card.locator(joinSelectors(SELECTORS.catalog.productTitle));
     return (await titleEl.textContent()) || '';
   }
+  /**
+   * Get product name by index (alias for getProductTitle)
+   * @param index - Product index
+   * @returns Product name
+   */
+  async getProductName(index: number): Promise<string> {
+    return this.getProductTitle(index);
+  }
+
+  /**
+   * Get product price as formatted string
+   * @param index - Product index
+   * @returns Price text
+   */
+  async getProductPriceText(index: number): Promise<string> {
+    const cards = this.page.locator('.custom_product_content[data-visely-article-product-id]');
+    const card = cards.nth(index);
+    
+    const selectors = [
+      '.custom_product_price span.regular',
+      '.custom_product_price span:first-child',
+      '[itemprop="price"]',
+      '.custom_product_price',
+    ];
+    
+    for (const selector of selectors) {
+      try {
+        const priceEl = card.locator(selector).first();
+        if (await priceEl.isVisible({ timeout: 1000 })) {
+          const priceText = (await priceEl.textContent()) || '0';
+          return priceText.trim();
+        }
+      } catch {
+        continue;
+      }
+    }
+    
+    return '0';
+  }
 
   /**
    * Get product price by index

@@ -73,6 +73,19 @@ When('I switch language to {string}', async function (
   await waitForPageLoad(this.page);
 });
 
+When('I ensure the language is set to {string}', async function (
+  this: CustomWorld,
+  targetLang: 'RO' | 'RU'
+) {
+  const homePage = new HomePage(this.page);
+  const currentLang = await homePage.getCurrentLanguage();
+  
+  if (currentLang !== targetLang) {
+    await homePage.switchLanguage(targetLang);
+    await waitForPageLoad(this.page);
+  }
+});
+
 // ==================== Wait Steps ====================
 
 When('I wait for search results to load', async function (this: CustomWorld) {

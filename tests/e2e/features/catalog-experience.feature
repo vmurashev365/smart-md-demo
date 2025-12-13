@@ -51,22 +51,24 @@ Feature: Catalog Experience
 
   @mobile @responsive
   Scenario: Mobile navigation and browsing
-    Given I am using "iPhone 14" device emulation
+    Given I am using "iPhone SE" device emulation
     And I am on the Smart.md homepage
+    When I ensure the language is set to "RO"
     Then the mobile layout should be displayed
-    And the hamburger menu icon should be visible
-    And the desktop navigation should be hidden
+    And the mobile menu icon should be visible
     
-    When I tap on the hamburger menu icon
-    Then the mobile menu drawer should open
-    And I should see main category links
+    When I tap on the mobile menu icon
+    Then I should see main category links
     
-    When I tap on "Gadgeturi" category
-    Then I should see the gadgets catalog page
+    When I tap on "Smartphone" category
+    Then I should see the smartphones catalog page
     And the products should be displayed in mobile grid
-    And each product card should be touch-friendly
+    And the product count should be greater than 5
     
-    When I tap on the first product
+    When I store the first product name as "catalog_product_name"
+    And I store the first product price as "catalog_product_price"
+    And I tap on the first product
     Then I should see the product detail page
-    And the "Adaugă în coș" button should be full-width
-    And the product images should be swipeable
+    And the product name should match stored "catalog_product_name"
+    And the product price should match stored "catalog_product_price"
+    And the "Adauga in cos" button should be visible

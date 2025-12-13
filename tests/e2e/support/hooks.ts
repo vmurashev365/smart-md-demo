@@ -98,6 +98,14 @@ Before(async function (this: CustomWorld, scenario) {
     ? { ...getRandomFingerprint(), ...getDeviceFingerprint(this.currentDevice) }
     : getRandomFingerprint();
 
+  // Disable human-like delays for mobile tests (faster execution, no bot protection)
+  if (this.currentDevice) {
+    process.env.DISABLE_HUMAN_DELAYS = 'true';
+    console.log('Mobile device detected - human-like delays disabled');
+  } else {
+    process.env.DISABLE_HUMAN_DELAYS = 'false';
+  }
+
   // Create browser context with anti-detection settings
   this.context = await browser.newContext({
     baseURL: this.baseUrl,

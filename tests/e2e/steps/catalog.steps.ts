@@ -13,7 +13,7 @@ import { CatalogPage } from '../../shared/page-objects/catalog.page';
 import { ProductDetailPage } from '../../shared/page-objects/product-detail.page';
 import { MobileMenuComponent } from '../../shared/page-objects/components/mobile-menu.component';
 import { SELECTORS } from '../../shared/config/selectors';
-import { humanWaitForContent } from '../../shared/utils/human-like';
+import { humanWaitForContent, humanClick } from '../../shared/utils/human-like';
 import { waitForPageLoad } from '../../shared/utils/wait-utils';
 import { detectTextLanguage, containsCyrillic } from '../../shared/utils/language-utils';
 import { joinSelectors } from '../../shared/utils/locator-helper';
@@ -52,6 +52,22 @@ Then('I should see the smartphones catalog', async function (this: CustomWorld) 
   expect(productCount).toBeGreaterThan(0);
   
   // Verify we're on smartphones page
+  const url = this.page.url().toLowerCase();
+  expect(url).toMatch(/smartphone|telefon/);
+});
+
+Then('I should see the smartphones catalog page', async function (this: CustomWorld) {
+  const catalogPage = new CatalogPage(this.page);
+  let productCount: number;
+
+  try {
+    productCount = await catalogPage.getVisibleProductsUpperBound();
+  } catch {
+    productCount = await catalogPage.getProductCount();
+  }
+  
+  expect(productCount).toBeGreaterThan(0);
+  
   const url = this.page.url().toLowerCase();
   expect(url).toMatch(/smartphone|telefon/);
 });
@@ -228,6 +244,16 @@ Then('the mobile layout should be displayed', async function (this: CustomWorld)
   expect(isMobile).toBe(true);
 });
 
+Then('the bottom navigation bar should be visible', async function (this: CustomWorld) {
+  const bottomNav = this.page.locator(joinSelectors(SELECTORS.mobile.bottomNav));
+  await expect(bottomNav).toBeVisible();
+});
+
+Then('the mobile menu icon should be visible', async function (this: CustomWorld) {
+  const menuIcon = this.page.locator('#menu_link');
+  await expect(menuIcon).toBeVisible();
+});
+
 Then('the hamburger menu icon should be visible', async function (this: CustomWorld) {
   const hamburger = this.page.locator(joinSelectors(SELECTORS.header.hamburgerMenu));
   await expect(hamburger).toBeVisible();
@@ -266,6 +292,18 @@ Then('the desktop navigation should not be visible', async function (this: Custo
   expect(isHidden).toBe(true);
 });
 
+When('I tap on the mobile menu icon', async function (this: CustomWorld) {
+  const menuIcon = this.page.locator('#menu_link');
+  await humanClick(menuIcon);
+  // Wait for menu to open
+  await this.page.waitForTimeout(500);
+});
+
+When('I tap on {string} in bottom navigation', async function (this: CustomWorld, itemName: string) {
+  const bottomNavItem = this.page.locator(joinSelectors(SELECTORS.mobile.bottomNavItem)).filter({ hasText: itemName });
+  await humanClick(bottomNavItem);
+});
+
 When('I tap on the hamburger menu icon', async function (this: CustomWorld) {
   const homePage = new HomePage(this.page);
   await homePage.openMobileMenu();
@@ -283,6 +321,15 @@ Then('I should see main category links', async function (this: CustomWorld) {
   const categoryCount = await mobileMenu.getCategoryCount();
   
   expect(categoryCount).toBeGreaterThan(0);
+});
+
+When('I tap on {string} in the mobile menu', async function (
+  this: CustomWorld,
+  categoryName: string
+) {
+  const mobileMenu = new MobileMenuComponent(this.page);
+  await mobileMenu.navigateToCategory(categoryName);
+  await this.page.waitForTimeout(500);
 });
 
 When('I tap on {string} category', async function (
@@ -331,4 +378,42 @@ Then('the product images should be swipeable', async function (this: CustomWorld
   // On mobile, images should be in a swipeable gallery
   // This might not always be true, so we do a soft check
   this.logMessage(`Images swipeable: ${isSwipeable}`);
+});
+
+// ==================== Product Data Verification ====================
+
+When('I store the first product name as {string}', async function (this: CustomWorld, key: string) {
+  const catalogPage = new CatalogPage(this.page);
+  const productName = await catalogPage.getProductName(0);
+  this.storeValue(key, productName);
+  this.logMessage(`Stored product name: ${productName}`);
+});
+
+When('I store the first product price as {string}', async function (this: CustomWorld, key: string) {
+  const catalogPage = new CatalogPage(this.page);
+  const productPrice = await catalogPage.getProductPriceText(0);
+  this.storeValue(key, productPrice);
+  this.logMessage(`Stored product price: ${productPrice}`);
+});
+
+Then('the product name should match stored {string}', async function (this: CustomWorld, key: string) {
+  const expectedName = this.getStoredValue(key) as string;
+  const productPage = new ProductDetailPage(this.page);
+  const actualName = await productPage.getProductName();
+  
+  this.logMessage(`Expected: ${expectedName}`);
+  this.logMessage(`Actual: ${actualName}`);
+  
+  expect(actualName).toContain(expectedName);
+});
+
+Then('the product price should match stored {string}', async function (this: CustomWorld, key: string) {
+  const expectedPrice = this.getStoredValue(key) as string;
+  const productPage = new ProductDetailPage(this.page);
+  const actualPrice = await productPage.getProductPrice();
+  
+  this.logMessage(`Expected price: ${expectedPrice}`);
+  this.logMessage(`Actual price: ${actualPrice}`);
+  
+  expect(actualPrice).toBe(expectedPrice);
 });

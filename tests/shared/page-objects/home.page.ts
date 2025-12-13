@@ -201,6 +201,14 @@ export class HomePage extends BasePage {
   }
 
   /**
+   * Get current language from URL
+   * @returns Current language
+   */
+  async getCurrentLanguage(): Promise<Language> {
+    return this.currentLanguage;
+  }
+
+  /**
    * Switch website language
    * @param lang - Target language
    */
@@ -317,11 +325,12 @@ export class HomePage extends BasePage {
 
   /**
    * Check if mobile layout is displayed
+   * Menu icon (#menu_link) is visible on mobile
    * @returns true if mobile layout
    */
   async isMobileLayout(): Promise<boolean> {
-    const hamburger = this.hamburgerMenu;
-    return await hamburger.isVisible();
+    const menuIcon = this.page.locator('#menu_link');
+    return await menuIcon.isVisible();
   }
 
   /**

@@ -29,12 +29,14 @@ export const TIMEOUTS = {
 export async function waitForPageLoad(page: Page, timeout: number = TIMEOUTS.navigation): Promise<void> {
   await page.waitForLoadState('domcontentloaded', { timeout });
   
-  // Try to wait for networkidle, but don't fail if it takes too long
-  try {
-    await page.waitForLoadState('networkidle', { timeout: Math.min(timeout, 5000) });
-  } catch {
-    // networkidle didn't happen in time, but domcontentloaded is enough
-    console.log('[waitForPageLoad] networkidle timeout, continuing anyway');
+  // Try to wait for networkidle for desktop tests (skip for mobile)
+  if (process.env.DISABLE_HUMAN_DELAYS !== 'true') {
+    try {
+      await page.waitForLoadState('networkidle', { timeout: Math.min(timeout, 5000) });
+    } catch {
+      // networkidle didn't happen in time, but domcontentloaded is enough
+      console.log('[waitForPageLoad] networkidle timeout, continuing anyway');
+    }
   }
 }
 

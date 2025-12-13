@@ -21,6 +21,11 @@ import { Page, Locator } from '@playwright/test';
  * @returns Promise that resolves after random delay
  */
 export async function randomDelay(min: number = 100, max: number = 500): Promise<void> {
+  // Skip delays for mobile tests (no bot protection on mobile)
+  if (process.env.DISABLE_HUMAN_DELAYS === 'true') {
+    return Promise.resolve();
+  }
+  
   const delay = Math.floor(Math.random() * (max - min + 1)) + min;
   await new Promise(resolve => setTimeout(resolve, delay));
 }
@@ -293,6 +298,10 @@ export async function humanReadPage(
  * @returns Boolean indicating if human-like mode is enabled
  */
 export function isHumanLikeModeEnabled(): boolean {
+  // Disabled for mobile tests
+  if (process.env.DISABLE_HUMAN_DELAYS === 'true') {
+    return false;
+  }
   return process.env.HUMAN_LIKE_MODE !== 'false';
 }
 

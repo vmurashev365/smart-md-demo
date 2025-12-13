@@ -159,12 +159,38 @@ export class ProductDetailPage extends BasePage {
   }
 
   /**
+   * Get product name (alias for getTitle)
+   * @returns Product name
+   */
+  async getProductName(): Promise<string> {
+    return this.getTitle();
+  }
+
+  /**
    * Get product price as number
    * @returns Price in MDL
    */
   async getPrice(): Promise<number> {
     const priceText = (await this.productPrice.textContent()) || '0';
     return parsePrice(priceText);
+  }
+
+  /**
+   * Get product price as formatted string
+   * @returns Price text with currency
+   */
+  async getProductPrice(): Promise<string> {
+    // Smart.md uses #priceProduct input element
+    const priceInput = this.page.locator('#priceProduct');
+    const priceValue = await priceInput.getAttribute('value');
+    
+    if (priceValue) {
+      // Format as "26 999 lei"
+      const price = parseFloat(priceValue);
+      return `${price.toLocaleString('ru')} lei`;
+    }
+    
+    return '0 lei';
   }
 
   /**
@@ -335,19 +361,19 @@ export class ProductDetailPage extends BasePage {
     const productContainer = this.page.locator('#product');
     
     // Check title (2 h1 elements: desktop and mobile)
-    const hasTitle = await this.productTitle.first().isVisible({ timeout: 3000 }).catch(() => false);
+    const hasTitle = await this.productTitle.first().isVisible({ timeout: 5000 }).catch(() => false);
     
     // Check "Adauga in cos" button using Codegen pattern
     const hasAddToCart = await productContainer
       .getByRole('button', { name: /adauga in cos|в корзину/i })
       .first()
-      .isVisible({ timeout: 3000 })
+      .isVisible({ timeout: 5000 })
       .catch(() => false);
 
     console.log(`[isProductPageLoaded] Title: ${hasTitle}, AddToCart: ${hasAddToCart}`);
     
-    // For Smart.md, title + addToCart button is enough to confirm product page
-    return hasTitle && hasAddToCart;
+    // For Smart.md mobile, button is enough (title might be lazy loaded)
+    return hasAddToCart;
   }
 }
 

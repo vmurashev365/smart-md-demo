@@ -818,8 +818,18 @@ export const SELECTORS = {
 
     bottomNav: [
       '[data-testid="bottom-nav"]',
+      // smart.md mobile bottom navigation
+      '.footer_container_items',
+      '.footer_container',
+      'footer.bottom',
       '.bottom-nav',
       '.mobile-bottom-nav',
+    ],
+
+    bottomNavItem: [
+      '.footer_container_items a',
+      '.footer_item',
+      '.bottom-nav-item',
     ],
 
     productGrid: [

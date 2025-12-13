@@ -188,11 +188,8 @@ export class MobileMenuComponent {
   async navigateToCategory(categoryName: string): Promise<void> {
     await this.clickCategory(categoryName);
 
-    // Wait for either submenu or page navigation
-    await Promise.race([
-      this.page.waitForLoadState('networkidle'),
-      this.drawer.waitFor({ state: 'hidden' }),
-    ]);
+    // Wait for menu to close after navigation
+    await this.page.locator('#floating_meniu:visible').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   }
 
   /**
