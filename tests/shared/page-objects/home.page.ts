@@ -24,14 +24,14 @@ export class HomePage extends BasePage {
    * Search input field
    */
   get searchInput(): Locator {
-    return this.page.locator(joinSelectors(SELECTORS.header.searchInput));
+    return this.page.locator(joinSelectors(SELECTORS.header.searchInput)).first();
   }
 
   /**
    * Search button
    */
   get searchButton(): Locator {
-    return this.page.locator(joinSelectors(SELECTORS.header.searchButton));
+    return this.page.locator(joinSelectors(SELECTORS.header.searchButton)).first();
   }
 
   /**
@@ -80,7 +80,7 @@ export class HomePage extends BasePage {
    * Hamburger menu (mobile)
    */
   get hamburgerMenu(): Locator {
-    return this.page.locator(joinSelectors(SELECTORS.header.hamburgerMenu));
+    return this.page.locator(joinSelectors(SELECTORS.header.hamburgerMenu)).first();
   }
 
   /**
@@ -151,6 +151,13 @@ export class HomePage extends BasePage {
     const cat = category.trim().toLowerCase();
     const sub = subcategory?.trim().toLowerCase();
 
+    // Smart.md has a dedicated smartphones listing at /smartphone/ (used by recorder/codegen).
+    // The feature uses English navigation labels ("Catalog" > "Smartphone"), so we map it here.
+    if (sub && cat === 'catalog' && sub === 'smartphone') {
+      await this.goto('/smartphone/');
+      return;
+    }
+
     if (sub && cat === 'telefoane' && sub === 'smartphone-uri') {
       await this.goto(URLS.categories.phones.smartphones);
       await this.waitForPageLoad();
@@ -204,31 +211,36 @@ export class HomePage extends BasePage {
       return; // Already on correct language
     }
 
-    // Try different approaches to switch language
-    const langSwitcher = this.languageSwitcher;
+    console.log(`[switchLanguage] Switching from ${currentLang} to ${lang}`);
 
-    if (await langSwitcher.isVisible()) {
-      // Click language switcher first if it's a dropdown
-      await humanClick(langSwitcher);
-      await randomDelay(200, 400);
+    // Smart.md uses paragraph with language text: "RO" or "RUS"
+    if (lang === 'RU') {
+      const rusLink = this.page.getByRole('paragraph').filter({ hasText: 'RUS' });
+      if (await rusLink.isVisible({ timeout: 3000 })) {
+        console.log('[switchLanguage] Clicking RUS paragraph');
+        await humanClick(rusLink);
+        await this.waitForPageLoad();
+        return;
+      }
+    } else if (lang === 'RO') {
+      const roLink = this.page.getByRole('paragraph').filter({ hasText: 'RO' });
+      if (await roLink.isVisible({ timeout: 3000 })) {
+        console.log('[switchLanguage] Clicking RO paragraph');
+        await humanClick(roLink);
+        await this.waitForPageLoad();
+        return;
+      }
     }
 
-    // Click the target language
-    const targetLangLink = lang === 'RU' ? this.languageRU : this.languageRO;
+    // Fallback: try direct URL navigation
+    console.log('[switchLanguage] Language link not found, trying URL navigation');
+    const currentPath = new URL(this.currentUrl).pathname;
+    const newPath =
+      lang === 'RU'
+        ? currentPath.replace(/^\/ru\//, '/').startsWith('/ru/') ? currentPath : `/ru${currentPath}`
+        : currentPath.replace(/^\/ru\//, '/');
 
-    if (await targetLangLink.isVisible()) {
-      await humanClick(targetLangLink);
-    } else {
-      // Try direct URL navigation
-      const currentPath = new URL(this.currentUrl).pathname;
-      const newPath =
-        lang === 'RU'
-          ? currentPath.replace(/^\/ru/, '/ru') || `/ru${currentPath}`
-          : currentPath.replace(/^\/ru/, '');
-
-      await this.goto(newPath);
-    }
-
+    await this.goto(newPath);
     await this.waitForPageLoad();
   }
 

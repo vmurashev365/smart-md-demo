@@ -144,8 +144,9 @@ Then('the URL path should match the stored {string} path', async function (
     throw new Error(`No stored URL with key: ${key}`);
   }
 
-  const currentPath = new URL(this.page.url()).pathname.replace(/^\/ru/, '');
-  const storedPath = new URL(storedUrl).pathname;
+  // Normalize both paths by removing language prefix (/ru/)
+  const currentPath = new URL(this.page.url()).pathname.replace(/^\/ru\//, '/');
+  const storedPath = new URL(storedUrl).pathname.replace(/^\/ru\//, '/');
   
   expect(currentPath).toBe(storedPath);
 });
@@ -166,9 +167,11 @@ Then('the {string} button should be visible', async function (
 ) {
   const normalized = buttonText.trim().toLowerCase();
 
-  // Key business strings: avoid direct has-text for stability/localization.
+  // Smart.md: Use getByRole for "Adauga in cos" / "В корзину" buttons
   if (normalized.includes('adaug') || /co[sș]/i.test(buttonText) || normalized.includes('корзин')) {
-    await expect(this.page.locator(joinSelectors(SELECTORS.product.addToCart)).first()).toBeVisible({ timeout: 10000 });
+    const productContainer = this.page.locator('#product');
+    const button = productContainer.getByRole('button', { name: /adauga in cos|в корзину/i }).first();
+    await expect(button).toBeVisible({ timeout: 10000 });
     return;
   }
 

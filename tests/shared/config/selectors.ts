@@ -31,15 +31,24 @@ export const SELECTORS = {
 
     searchInput: [
       '[data-testid="search-input"]',
+      // smart.md header search
+      '#input_search',
+      'input#input_search',
+      'form#search_form input[name="query"]',
+      '.search_container input[name="query"]',
+      'input.input_search',
+      // legacy / generic fallbacks
       'input[name="search"]',
-      'input[type="search"]',
-      '.search-input',
       '#search',
       '#search-input',
     ],
 
     searchButton: [
       '[data-testid="search-btn"]',
+      // smart.md header search
+      'button.button_search',
+      'button[aria-label="search"]',
+      '.button_search_container button',
       'button[type="submit"].search',
       '.search-btn',
       '.search-button',
@@ -48,6 +57,9 @@ export const SELECTORS = {
 
     searchForm: [
       '[data-testid="search-form"]',
+      // smart.md header search
+      '#search_form',
+      'form#search_form',
       'form[role="search"]',
       '.search-form',
     ],
@@ -96,6 +108,10 @@ export const SELECTORS = {
     hamburgerMenu: [
       '[data-testid="mobile-menu"]',
       '[aria-label="Menu"]',
+      // smart.md catalog/menu trigger
+      '#menu_link',
+      'span#menu_link',
+      'span[onclick*="open__new__menu"]',
       '.hamburger',
       '.mobile-menu-btn',
       '.burger-menu',
@@ -131,6 +147,9 @@ export const SELECTORS = {
       'nav.main-nav',
       '.main-nav',
       '.navigation',
+      // smart.md menu container
+      '#menu_1Column',
+      '.meniu_table',
       'nav',
     ],
 
@@ -142,6 +161,9 @@ export const SELECTORS = {
 
     categoryLink: [
       '[data-testid="category-link"]',
+      // smart.md category links in menu
+      'a.option-link',
+      'a[option-id]',
       '.category-link',
       '.nav-category',
     ],
@@ -172,6 +194,9 @@ export const SELECTORS = {
   searchResults: {
     container: [
       '[data-testid="search-results"]',
+      // smart.md visely search results
+      '#custom_products_content',
+      '.custom_products_content',
       '.search-results',
       '.products-list',
       '.product-list',
@@ -179,6 +204,9 @@ export const SELECTORS = {
 
     productGrid: [
       '[data-testid="product-grid"]',
+      // smart.md visely grid
+      '.custom_products_content[visely-category-grid]',
+      '.custom_products_content',
       '.product-grid',
       '.products-grid',
     ],
@@ -186,6 +214,12 @@ export const SELECTORS = {
     productCard: [
       '[data-testid="product-card"]',
       '[data-product-id]',
+      // smart.md visely product card - use specific attribute to avoid skeleton duplicates
+      '.search-item.search-product.custom_product_content[data-visely-article-product-id]',
+      '[data-visely-article-product-id]',
+      '.custom_product_content[data-visely-article-product-id]',
+      '.custom_product_content',
+      '.search-item.search-product',
       '.product-card',
       '.product-item',
       '.product',
@@ -248,6 +282,9 @@ export const SELECTORS = {
   catalog: {
     container: [
       '[data-testid="catalog"]',
+      // smart.md product grid container
+      '#custom_products_content',
+      '.custom_products_content',
       '.catalog',
       '.category-page',
     ],
@@ -255,6 +292,12 @@ export const SELECTORS = {
     productCard: [
       '[data-testid="product-card"]',
       '[data-product-id]',
+      // smart.md product card - use specific attribute to avoid skeleton duplicates
+      '.search-item.search-product.custom_product_content[data-visely-article-product-id]',
+      '[data-visely-article-product-id]',
+      '.custom_product_content[data-visely-article-product-id]',
+      '.custom_product_content',
+      '.search-item.search-product',
       '.product-card',
       '.product-item',
     ],
@@ -262,8 +305,10 @@ export const SELECTORS = {
     productTitle: [
       '[data-testid="product-title"]',
       '[itemprop="name"]',
+      '.custom_product_title h4',
       '.product-title',
       '.product-name',
+      'h4',
     ],
 
     productPrice: [
@@ -276,6 +321,9 @@ export const SELECTORS = {
 
     filterSidebar: [
       '[data-testid="filters"]',
+      // smart.md filters container
+      '#category_filters_block',
+      '.category_filters_block',
       '.filter-sidebar',
       '.filters',
       '.sidebar-filters',
@@ -284,6 +332,9 @@ export const SELECTORS = {
     brandFilter: [
       '[data-testid="filter-brand"]',
       '[data-filter="brand"]',
+      // smart.md brand facet
+      '#search_facet_metaf_vendor',
+      '[data-facet-id="search_facet_metaf_vendor"]',
       '.filter-brand',
       '.brand-filter',
     ],
@@ -315,6 +366,9 @@ export const SELECTORS = {
 
     activeFilters: [
       '[data-testid="active-filters"]',
+      // smart.md selected facets container
+      '.selectedfacets',
+      '.custom_tags',
       '.active-filters',
       '.filter-tags',
       '.applied-filters',
@@ -322,6 +376,9 @@ export const SELECTORS = {
 
     filterTag: [
       '[data-testid="filter-tag"]',
+      // smart.md tag element
+      '.custom_tag',
+      '.search-facet-remove-only',
       '.filter-tag',
       '.active-filter',
     ],
@@ -329,6 +386,8 @@ export const SELECTORS = {
     clearFilters: [
       '[data-testid="clear-filters"]',
       '[data-action="clear-filters"]',
+      '.search-facet-remove-only-all',
+      'button:has-text("Curata tot")',
       '.clear-filters',
       '.reset-filters',
     ],
@@ -386,17 +445,14 @@ export const SELECTORS = {
       '[data-testid="product-id"]',
     ],
 
-    // CRITICAL: No exact text! Use semantic selectors with text fallback
+    // CRITICAL: No exact text! Use semantic selectors
+    // For Smart.md, use getByRole('button', {name: ...}) in code
     addToCart: [
       '[data-testid="add-to-cart"]',
       '[data-action="add-to-cart"]',
       'button.add-to-cart',
       '.btn-add-cart',
       '.add-to-cart',
-      // RO fallback: cover both "cos" and "coș"
-      'button:has-text(/co[sș]/i)',
-      // RU fallback
-      'button:has-text(/корзин/i)',
     ],
 
     buyCredit: [
@@ -714,6 +770,11 @@ export const SELECTORS = {
     menuDrawer: [
       '[data-testid="mobile-drawer"]',
       '[role="navigation"].mobile',
+      // smart.md mobile/catalog drawer
+      'aside#floating_meniu',
+      '#floating_meniu',
+      '#menu_1Column',
+      '.floating_meniu',
       '.mobile-drawer',
       '.mobile-nav',
       '.drawer',
@@ -722,12 +783,18 @@ export const SELECTORS = {
     menuClose: [
       '[data-testid="menu-close"]',
       '[aria-label="Close menu"]',
+      // smart.md close icon
+      '[onclick*="close__new_mobile_menu"]',
+      '.mobverile-close',
       '.menu-close',
       '.drawer-close',
     ],
 
     categoryLink: [
       '[data-testid="mobile-category"]',
+      // smart.md category links
+      'a.option-link',
+      'a[option-id]',
       '.mobile-category',
       '.nav-category',
       '.mobile-menu-item',

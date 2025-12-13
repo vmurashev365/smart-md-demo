@@ -12,6 +12,8 @@ allure-report/
 reports/
 test-results/
 coverage/
+recorded_steps/
+codegen_smart_recorder/recorded_steps/
 *.log
 
 # Cucumber rerun
@@ -56,6 +58,10 @@ playwright-report/
 playwright/.cache/
 blob-report/
 test-results/
+
+# Local codegen + recorder artifacts
+codegen_smart_recorder/
+recorded_steps_smartmd/
 
 # TypeScript
 *.tsbuildinfo

@@ -89,6 +89,13 @@ export class CatalogPage extends BasePage {
     return this.page.locator(joinSelectors(SELECTORS.catalog.productCount));
   }
 
+  /**
+   * Pagination label showing current visible range (e.g. "1 - 40 din 629 produse")
+   */
+  get paginationRangeLabel(): Locator {
+    return this.page.locator('#custom_pagination_content .custom_pagination_label label').first();
+  }
+
   // ==================== Actions ====================
 
   /**
@@ -110,6 +117,33 @@ export class CatalogPage extends BasePage {
   }
 
   /**
+   * Get the upper bound of the visible product range from pagination.
+   * Example: "1 - 40 din 629 produse" => 40
+   */
+  async getVisibleProductsUpperBound(): Promise<number> {
+    await this.waitForCatalog();
+
+    const label = this.paginationRangeLabel;
+    await label.waitFor({ state: 'visible', timeout: 10_000 });
+
+    const text = ((await label.textContent()) || '').replace(/\s+/g, ' ').trim();
+
+    // Most robust: extract "lower - upper" regardless of language.
+    const rangeMatch = text.match(/\b(\d+)\s*-\s*(\d+)\b/);
+    if (rangeMatch) {
+      return Number.parseInt(rangeMatch[2], 10);
+    }
+
+    // Language-aware fallback (RO/RU/EN-ish)
+    const upperMatch = text.match(/-\s*(\d+)\s*(?:din|из|of)\b/i);
+    if (upperMatch) {
+      return Number.parseInt(upperMatch[1], 10);
+    }
+
+    throw new Error(`Cannot parse visible products upper bound from: "${text}"`);
+  }
+
+  /**
    * Get total product count from counter
    * @returns Total products number
    */
@@ -124,51 +158,51 @@ export class CatalogPage extends BasePage {
  * @param brand - Brand name
  */
 async applyBrandFilter(brand: string): Promise<void> {
-  // Strategy 1: Try data-testid
-  let brandCheckbox = this.filterSidebar.locator(
-    `[data-testid="brand-filter-${brand.toLowerCase()}"]`
-  );
+  await this.waitForCatalog();
 
-  if (!(await brandCheckbox.isVisible({ timeout: 2000 }).catch(() => false))) {
-    // Strategy 2: Try value attribute
-    brandCheckbox = this.filterSidebar.locator(
-      `${SELECTORS.catalog.filterCheckbox}[value="${brand}"], ` +
-        `${SELECTORS.catalog.filterCheckbox}[value="${brand.toLowerCase()}"]`
-    );
-  }
-
-  if (!(await brandCheckbox.isVisible({ timeout: 2000 }).catch(() => false))) {
-    // Strategy 3: Try label text with input
-    brandCheckbox = this.filterSidebar.locator(
-      `${SELECTORS.catalog.filterLabel}:has-text("${brand}") input, ` +
-        `label:has-text("${brand}") input`
-    );
-  }
-
-  // Scroll to filter section
-  await this.brandFilter.scrollIntoViewIfNeeded().catch(() => {});
-  await randomDelay(200, 400);
-
-  // Click on checkbox or label
-  if (await brandCheckbox.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await humanClick(brandCheckbox);
-  } else {
-    // Strategy 4: Click on label text directly
-    const brandLabel = this.filterSidebar.locator(
-      `label:has-text("${brand}"), ` +
-        `[class*="filter"] >> text="${brand}", ` +
-        `.brand-item:has-text("${brand}")`
-    );
-
-    if (await brandLabel.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await humanClick(brandLabel);
-    } else {
-      throw new Error(`Cannot find brand filter for: ${brand}`);
+  // Strategy 1 (primary): Codegen/recorder shows a visible brand quicklink as role=link.
+  // This is the most stable approach (matches recorded behavior from step_001->step_002).
+  const quickLink = this.page.getByRole('link', { name: brand, exact: true });
+  
+  try {
+    // Check if quicklink is visible with a reasonable timeout
+    if (await quickLink.isVisible({ timeout: 3000 })) {
+      await humanClick(quickLink);
+      await waitForProductListUpdate(this.page);
+      return;
     }
+  } catch {
+    // Quicklink not found, proceed to fallback
   }
 
-  // Wait for products to update
-  await waitForProductListUpdate(this.page);
+  // Strategy 2 (fallback): Click checkbox inside #search_facet_metaf_vendor (Visely filter panel).
+  const vendorFacet = this.page.locator('#search_facet_metaf_vendor').first();
+  
+  try {
+    await vendorFacet.waitFor({ state: 'visible', timeout: 8000 });
+    await vendorFacet.scrollIntoViewIfNeeded().catch(() => {});
+    await randomDelay(200, 400);
+
+    // Try clicking the label that contains the brand text
+    const brandLabel = vendorFacet.locator('label', { hasText: brand }).first();
+    if (await brandLabel.isVisible({ timeout: 3000 })) {
+      await humanClick(brandLabel);
+      await waitForProductListUpdate(this.page);
+      return;
+    }
+
+    // Last resort: click checkbox by value attribute
+    const checkbox = vendorFacet.locator(`input[type="checkbox"][value="${brand}"]`).first();
+    if (await checkbox.isVisible({ timeout: 2000 })) {
+      await humanClick(checkbox);
+      await waitForProductListUpdate(this.page);
+      return;
+    }
+  } catch (error) {
+    throw new Error(`Cannot find brand filter for: ${brand}. Error: ${error}`);
+  }
+
+  throw new Error(`Cannot find brand filter for: ${brand}`);
 }
 
   /**
@@ -194,89 +228,61 @@ async applyBrandFilter(brand: string): Promise<void> {
   }
 
   /**
-   * Apply sorting with multiple text variants
-   * Handles both RO and RU text for sort options
-   * @param sortOption - Sort option text (will try variations)
+   * Apply sorting option
+   * Smart.md uses custom radio-button dropdown with Romanian text
+   * @param sortOption - Sort option text (e.g., "Ieftine", "Scumpe", "Populare")
    */
   async applySorting(sortOption: string): Promise<void> {
-    const dropdown = this.sortDropdown;
-
-    // Define sort text variants for common options
-    const sortVariants: Record<string, string[]> = {
-      priceAsc: [
-        'Prețul: mic spre mare',
-        'Цена: по возрастанию',
-        'Price: low to high',
-        'preț crescător',
-        'pret',
-      ],
-      priceDesc: [
-        'Prețul: mare spre mic',
-        'Цена: по убыванию',
-        'Price: high to low',
-        'preț descrescător',
-      ],
-      popularity: ['Popular', 'Популярные', 'Popularity'],
-      newest: ['Nou', 'Новинки', 'Newest', 'New'],
-    };
-
-    // Build list of texts to try
-    let textsToTry = [sortOption];
-
-    // Add variants if sortOption matches a known key
-    for (const [, variants] of Object.entries(sortVariants)) {
-      if (variants.some((v) => v.toLowerCase().includes(sortOption.toLowerCase()))) {
-        textsToTry = [...textsToTry, ...variants];
-        break;
-      }
+    console.log(`[applySorting] Requested sort option: "${sortOption}"`);
+    
+    // Step 1: Open sort dropdown by clicking "Populare" button
+    try {
+      console.log('[applySorting] Looking for "Populare" button...');
+      const sortButton = this.page.getByText('Populare').nth(1);
+      console.log('[applySorting] Clicking to open dropdown...');
+      await humanClick(sortButton);
+      await randomDelay(500, 700);
+      console.log('[applySorting] ✓ Dropdown opened');
+    } catch (error) {
+      console.log(`[applySorting] Failed to open dropdown: ${error}`);
+      throw new Error(`Cannot open sort dropdown: ${error}`);
     }
 
-    // Check if it's a select element or custom dropdown
-    const tagName = await dropdown.evaluate((el) => el.tagName.toLowerCase());
-
-    if (tagName === 'select') {
-      await humanSelectOption(dropdown, sortOption);
-    } else {
-      // Custom dropdown - click to open
-      await humanClick(dropdown);
-      await randomDelay(200, 400);
-
-      // Try each text variant
-      let clicked = false;
-      for (const text of textsToTry) {
-        const option = this.page.locator(
-          `${SELECTORS.catalog.sortOption}:has-text("${text}"), ` +
-            `[role="option"]:has-text("${text}"), ` +
-            `.dropdown-item:has-text("${text}"), ` +
-            `li:has-text("${text}")`
-        );
-
-        if (await option.isVisible({ timeout: 1000 }).catch(() => false)) {
-          await humanClick(option);
-          clicked = true;
-          break;
-        }
-      }
-
-      if (!clicked) {
-        // Close dropdown if no option found
-        await this.page.keyboard.press('Escape');
-        throw new Error(`Sort option not found: ${sortOption}`);
-      }
+    // Step 2: Click the radio button with the specified option
+    console.log(`[applySorting] Looking for radio button: "${sortOption}"`);
+    try {
+      const radio = this.page.getByRole('radio', { name: sortOption });
+      
+      // Wait for radio to be visible
+      await radio.waitFor({ state: 'visible', timeout: 5000 });
+      console.log('[applySorting] Radio button found and visible');
+      
+      // Click the radio button
+      await humanClick(radio);
+      await randomDelay(300, 500);
+      console.log('[applySorting] ✓ Radio button clicked');
+    } catch (error) {
+      console.log(`[applySorting] ✗ Failed to find/click radio button: ${error}`);
+      throw new Error(`Sort option not found: "${sortOption}". Error: ${error}`);
     }
 
+    console.log('[applySorting] Waiting for product list update...');
     await waitForProductListUpdate(this.page);
+    console.log('[applySorting] ✓ Sorting complete');
   }
 
   /**
    * Clear all filters
    */
   async clearAllFilters(): Promise<void> {
-    const clearBtn = this.clearFiltersButton;
+    // Smart.md uses "Curata tot" text link in filter sidebar
+    const clearBtn = this.page.getByText('Curata tot').first();
 
-    if (await clearBtn.isVisible()) {
+    if (await clearBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await humanClick(clearBtn);
       await waitForProductListUpdate(this.page);
+    } else {
+      console.log('[clearAllFilters] Clear button not visible, no filters to clear');
     }
   }
 
@@ -343,45 +349,164 @@ async applyBrandFilter(brand: string): Promise<void> {
    * @returns Product price
    */
   async getProductPrice(index: number): Promise<number> {
-    const card = this.getProductCard(index);
-    const priceEl = card.locator(joinSelectors(SELECTORS.catalog.productPrice));
-    const priceText = (await priceEl.textContent()) || '0';
-    return parsePrice(priceText);
+    // Use cards with data-visely-article-product-id to avoid skeleton loaders
+    const cards = this.page.locator('.custom_product_content[data-visely-article-product-id]');
+    const card = cards.nth(index);
+    
+    // Smart.md structure: div.custom_product_price > span.regular (current price) + span.old (strikethrough)
+    // IMPORTANT: Take only span.regular to avoid getting both prices concatenated!
+    const selectors = [
+      '.custom_product_price span.regular',  // Primary: current price only
+      '.custom_product_price span:first-child', // Fallback: first span
+      '[itemprop="price"]',
+      '.custom_product_price',
+    ];
+    
+    for (const selector of selectors) {
+      try {
+        const priceEl = card.locator(selector).first();
+        if (await priceEl.isVisible({ timeout: 1000 })) {
+          const priceText = (await priceEl.textContent()) || '0';
+          const price = parsePrice(priceText);
+          if (price > 0) {
+            return price;
+          }
+        }
+      } catch {
+        // Try next selector
+      }
+    }
+    
+    // Last resort: get all text content and extract price
+    const cardText = await card.textContent();
+    return parsePrice(cardText || '0');
   }
 
   /**
-   * Get all product prices
+   * Get all product prices (up to 20 products)
    * @returns Array of prices
    */
   async getAllPrices(): Promise<number[]> {
-    const count = await this.getProductCount();
+    console.log('[getAllPrices] Getting product prices...');
+    
+    // Use cards with data-visely-article-product-id to avoid skeleton loaders
+    const cards = this.page.locator('.custom_product_content[data-visely-article-product-id]');
+    const count = await cards.count();
+    console.log(`[getAllPrices] Found ${count} product cards`);
+    
     const prices: number[] = [];
+    const checkLimit = Math.min(count, 20);
 
-    for (let i = 0; i < Math.min(count, 20); i++) {
-      const price = await this.getProductPrice(i);
-      prices.push(price);
+    for (let i = 0; i < checkLimit; i++) {
+      try {
+        const price = await this.getProductPrice(i);
+        
+        if (price > 0) {
+          prices.push(price);
+          console.log(`[getAllPrices] Card ${i}: ${price} MDL`);
+        } else {
+          console.log(`[getAllPrices] Card ${i}: Invalid price`);
+        }
+      } catch (error) {
+        console.log(`[getAllPrices] Error getting price for card ${i}`);
+      }
     }
 
+    console.log(`[getAllPrices] Collected ${prices.length} prices`);
     return prices;
   }
 
   /**
    * Check if all visible products match brand
+   * Checks product titles (h4 elements) for brand or alias presence
    * @param brand - Brand name
-   * @returns true if all match
+   * @returns true if at least 90% of products match
    */
   async allProductsMatchBrand(brand: string): Promise<boolean> {
-    const count = await this.getProductCount();
-    const brandLower = brand.toLowerCase();
+    await this.waitForCatalog();
+    await randomDelay(2000, 2500); // Extra wait for lazy-loaded content
+    
+    // Get cards with data-visely-article-product-id (real product cards, not skeletons)
+    const allCards = this.page.locator('.custom_product_content[data-visely-article-product-id]');
+    const count = await allCards.count();
+    
+    if (count === 0) {
+      console.log('[allProductsMatchBrand] No product cards found');
+      return false;
+    }
 
-    for (let i = 0; i < Math.min(count, 10); i++) {
-      const title = await this.getProductTitle(i);
-      if (!title.toLowerCase().includes(brandLower)) {
-        return false;
+    console.log(`[allProductsMatchBrand] Found ${count} product cards with data-visely-article-product-id`);
+
+    const brandLower = brand.toLowerCase();
+    // Check up to 40 products (default page size)
+    const checkLimit = Math.min(count, 40);
+
+    // Brand aliases: Apple products show as "iPhone", not "Apple iPhone"
+    const brandAliases: Record<string, string[]> = {
+      apple: ['iphone', 'ipad', 'macbook', 'airpods'],
+      samsung: ['galaxy', 'samsung'],
+      xiaomi: ['redmi', 'poco', 'xiaomi'],
+      google: ['pixel'],
+    };
+
+    const aliases = brandAliases[brandLower] || [brandLower];
+    let matchedCount = 0;
+    let checkedCount = 0;
+
+    for (let i = 0; i < checkLimit; i++) {
+      const card = allCards.nth(i);
+      
+      // Check if card is visible
+      const isVisible = await card.isVisible().catch(() => false);
+      if (!isVisible) {
+        console.log(`[allProductsMatchBrand] Card ${i + 1} skipped (not visible)`);
+        continue;
+      }
+      
+      try {
+        // Get product title (h4 element inside card)
+        const titleLocator = card.locator('.custom_product_title h4, h4').first();
+        const titleText = (await titleLocator.textContent({ timeout: 3000 }).catch(() => ''))?.toLowerCase().trim() || '';
+        
+        // Skip empty titles (skeleton loaders)
+        if (titleText.length < 3) {
+          console.log(`[allProductsMatchBrand] Card ${i + 1} skipped (title empty)`);
+          continue;
+        }
+        
+        checkedCount++;
+        const hasMatch = aliases.some(alias => titleText.includes(alias));
+        
+        if (hasMatch) {
+          matchedCount++;
+          console.log(`[allProductsMatchBrand] Card ${i + 1} ✓ matched: "${titleText.slice(0, 50)}"`);
+        } else {
+          // Fallback: check href
+          const link = card.locator('a').first();
+          const href = (await link.getAttribute('href', { timeout: 1000 }).catch(() => '')) || '';
+          
+          if (aliases.some(alias => href.toLowerCase().includes(alias))) {
+            matchedCount++;
+            console.log(`[allProductsMatchBrand] Card ${i + 1} ✓ matched by href`);
+          } else {
+            console.log(`[allProductsMatchBrand] Card ${i + 1} ✗ doesn't match. Title: "${titleText}"`);
+          }
+        }
+      } catch (error) {
+        console.warn(`[allProductsMatchBrand] Could not check card ${i + 1}: ${error}`);
       }
     }
 
-    return true;
+    if (checkedCount < 5) {
+      console.log(`[allProductsMatchBrand] ERROR: Only ${checkedCount} cards checked!`);
+      return false;
+    }
+
+    const matchRate = matchedCount / checkedCount;
+    console.log(`[allProductsMatchBrand] ✓ Matched ${matchedCount}/${checkedCount} cards (${(matchRate * 100).toFixed(0)}%)`);
+    
+    // Require at least 90% match
+    return matchRate >= 0.9;
   }
 
   /**

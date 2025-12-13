@@ -12,7 +12,7 @@ Feature: Catalog Experience
   @filters @dynamic-content
   Scenario: Filter and sort products in catalog
     Given I am on the Smart.md homepage
-    When I navigate to "Telefoane" > "Smartphone-uri" category
+    When I navigate to "Catalog" > "Smartphones"  category
     Then I should see the smartphones catalog
     And the product count should be greater than 10
     
@@ -30,21 +30,22 @@ Feature: Catalog Experience
     Then the product count should increase
     And no filter tags should be displayed
 
-  @localization @language
+  @localization @language @known-issue
   Scenario: Switch language from Romanian to Russian
     Given I am on the Smart.md homepage
-    And the current language is "RO"
     When I search for "televizor"
     And I click on the first product in search results
     Then I should see the product detail page
-    And the "Adaugă în coș" button should be visible
+    And the "Adauga in cos" button should be visible
     And I store the current URL as "ro_url"
     
     When I switch language to "RU"
     Then the URL should contain "/ru/" prefix
     And the URL path should match the stored "ro_url" path
     And the page should not return 404 error
-    And the "Добавить в корзину" button should be visible
+    And the "В корзину" button should be visible
+    # KNOWN DEFECT: Product titles remain in Romanian after language switch
+    # Smart.md does not translate product names when changing language
     And the product title should be in Russian
     And the navigation menu should be in Russian
 

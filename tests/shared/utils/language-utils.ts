@@ -40,8 +40,8 @@ export const LANGUAGES = {
  */
 export const UI_TRANSLATIONS = {
   addToCart: {
-    RO: 'Adaugă în coș',
-    RU: 'Добавить в корзину',
+    RO: 'Adauga in cos',
+    RU: 'В корзину',
   },
   buyNow: {
     RO: 'Cumpără acum',

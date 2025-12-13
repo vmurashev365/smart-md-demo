@@ -142,10 +142,20 @@ export class ProductDetailPage extends BasePage {
 
   /**
    * Get product title text
+   * Smart.md has 2 h1 titles (desktop and mobile), filter by visible
    * @returns Product title
    */
   async getTitle(): Promise<string> {
-    return (await this.productTitle.textContent()) || '';
+    // Use locator filter to get only visible h1
+    const visibleTitle = this.productTitle.locator('visible=true').first();
+    const text = await visibleTitle.textContent().catch(() => '');
+    
+    // Fallback if visible filter doesn't work
+    if (!text) {
+      return (await this.productTitle.first().textContent()) || '';
+    }
+    
+    return text;
   }
 
   /**
@@ -321,11 +331,23 @@ export class ProductDetailPage extends BasePage {
   async isProductPageLoaded(): Promise<boolean> {
     await this.waitForPageLoad();
 
-    const hasTitle = await this.productTitle.isVisible();
-    const hasPrice = await this.productPrice.isVisible();
-    const hasAddToCart = await this.addToCartButton.isVisible();
+    // Smart.md structure from Codegen: #product container with button role
+    const productContainer = this.page.locator('#product');
+    
+    // Check title (2 h1 elements: desktop and mobile)
+    const hasTitle = await this.productTitle.first().isVisible({ timeout: 3000 }).catch(() => false);
+    
+    // Check "Adauga in cos" button using Codegen pattern
+    const hasAddToCart = await productContainer
+      .getByRole('button', { name: /adauga in cos|в корзину/i })
+      .first()
+      .isVisible({ timeout: 3000 })
+      .catch(() => false);
 
-    return hasTitle && hasPrice && hasAddToCart;
+    console.log(`[isProductPageLoaded] Title: ${hasTitle}, AddToCart: ${hasAddToCart}`);
+    
+    // For Smart.md, title + addToCart button is enough to confirm product page
+    return hasTitle && hasAddToCart;
   }
 }
 

@@ -153,8 +153,22 @@ export class SearchResultsPage extends BasePage {
 
   /**
    * Click on first product in results
+   * For Smart.md, use getByRole('link') to find product links
    */
   async clickFirstProduct(): Promise<void> {
+    // Try Smart.md pattern: getByRole('link') for product links
+    const productLinks = this.page.getByRole('link').filter({ 
+      has: this.page.locator('.custom_product_title, .product-title, h4') 
+    });
+    
+    const firstLink = productLinks.first();
+    if (await firstLink.isVisible({ timeout: 3000 })) {
+      await humanClick(firstLink);
+      await this.waitForPageLoad();
+      return;
+    }
+    
+    // Fallback: use old method
     await this.clickProduct(0);
   }
 

@@ -197,7 +197,7 @@ export const BRANDS = {
  */
 export const UI_TEXT = {
   ro: {
-    addToCart: 'Adaugă în coș',
+    addToCart: 'Adauga in cos',
     buyCredit: 'Cumpără în credit',
     emptyCart: 'Coșul este gol',
     search: 'Căutare',
@@ -208,7 +208,7 @@ export const UI_TEXT = {
     outOfStock: 'Lipsă din stoc',
   },
   ru: {
-    addToCart: 'Добавить в корзину',
+    addToCart: 'В корзину',
     buyCredit: 'Купить в кредит',
     emptyCart: 'Корзина пуста',
     search: 'Поиск',

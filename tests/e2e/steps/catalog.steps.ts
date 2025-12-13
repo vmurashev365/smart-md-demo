@@ -20,7 +20,7 @@ import { joinSelectors } from '../../shared/utils/locator-helper';
 
 // ==================== Category Navigation ====================
 
-When('I navigate to {string} > {string} category', async function (
+When(/^I navigate to "([^"]+)" > "([^"]+)"\s+category$/, async function (
   this: CustomWorld,
   category: string,
   subcategory: string
@@ -30,7 +30,7 @@ When('I navigate to {string} > {string} category', async function (
   await humanWaitForContent(this.page, 1500);
 });
 
-When('I navigate to {string} category', async function (
+When(/^I navigate to "([^"]+)"\s+category$/, async function (
   this: CustomWorld,
   category: string
 ) {
@@ -41,7 +41,13 @@ When('I navigate to {string} category', async function (
 
 Then('I should see the smartphones catalog', async function (this: CustomWorld) {
   const catalogPage = new CatalogPage(this.page);
-  const productCount = await catalogPage.getProductCount();
+  let productCount: number;
+
+  try {
+    productCount = await catalogPage.getVisibleProductsUpperBound();
+  } catch {
+    productCount = await catalogPage.getProductCount();
+  }
   
   expect(productCount).toBeGreaterThan(0);
   
@@ -66,7 +72,15 @@ Then('the product count should be greater than {int}', async function (
   minCount: number
 ) {
   const catalogPage = new CatalogPage(this.page);
-  const count = await catalogPage.getProductCount();
+  let count: number;
+
+  // Prefer Smart.md pagination range label (e.g. "1 - 40 din 629 produse") as it is often
+  // more reliable than counting cards when markup varies.
+  try {
+    count = await catalogPage.getVisibleProductsUpperBound();
+  } catch {
+    count = await catalogPage.getProductCount();
+  }
   
   expect(count).toBeGreaterThan(minCount);
   this.logMessage(`Product count: ${count}`);
@@ -175,20 +189,22 @@ Then('the product title should be in Russian', async function (this: CustomWorld
   const isRussian = containsCyrillic(title);
   
   // Title might be brand name (Latin) + Russian description
-  // So we check the page language indicator instead
   const lang = detectTextLanguage(title);
   
   this.logMessage(`Product title: ${title}`);
   this.logMessage(`Detected language: ${lang}`);
+  this.logMessage(`Contains Cyrillic: ${isRussian}`);
   
-  // Either title is in Russian or URL confirms Russian version
-  const urlIsRussian = this.page.url().includes('/ru/');
-  expect(isRussian || urlIsRussian).toBe(true);
+  // STRICT check: title must actually be in Russian (contain Cyrillic)
+  // Known issue: Smart.md does NOT translate product names
+  expect(isRussian).toBe(true);
 });
 
 Then('the navigation menu should be in Russian', async function (this: CustomWorld) {
   // Check navigation items for Cyrillic
-  const navItems = this.page.locator(`${SELECTORS.navigation.mainNav} a, ${SELECTORS.navigation.categoryLink}`);
+  const navItems = this.page.locator(
+    `:is(${joinSelectors(SELECTORS.navigation.mainNav)}) a, :is(${joinSelectors(SELECTORS.navigation.categoryLink)})`
+  );
   const count = await navItems.count();
   
   let russianCount = 0;

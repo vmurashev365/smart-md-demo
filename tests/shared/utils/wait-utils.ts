@@ -28,7 +28,14 @@ export const TIMEOUTS = {
  */
 export async function waitForPageLoad(page: Page, timeout: number = TIMEOUTS.navigation): Promise<void> {
   await page.waitForLoadState('domcontentloaded', { timeout });
-  await page.waitForLoadState('networkidle', { timeout });
+  
+  // Try to wait for networkidle, but don't fail if it takes too long
+  try {
+    await page.waitForLoadState('networkidle', { timeout: Math.min(timeout, 5000) });
+  } catch {
+    // networkidle didn't happen in time, but domcontentloaded is enough
+    console.log('[waitForPageLoad] networkidle timeout, continuing anyway');
+  }
 }
 
 /**
@@ -239,6 +246,20 @@ export async function waitForProductListUpdate(
 
   // Wait for loaders
   await waitForLoadersToDisappear(page, timeout);
+
+  // Wait for cards to have actual content (not just skeleton loaders)
+  const startTime = Date.now();
+  while (Date.now() - startTime < timeout) {
+    const firstCard = productCards.first();
+    const text = await firstCard.textContent().catch(() => '');
+    // If card has substantial text (more than 10 chars), consider it loaded
+    if (text && text.trim().length > 10) {
+      // Additional delay to ensure other cards also load
+      await page.waitForTimeout(1000);
+      return;
+    }
+    await page.waitForTimeout(200);
+  }
 }
 
 /**
