@@ -171,8 +171,10 @@ export class ProductDetailPage extends BasePage {
    * @returns Price in MDL
    */
   async getPrice(): Promise<number> {
-    const priceText = (await this.productPrice.textContent()) || '0';
-    return parsePrice(priceText);
+    // Use #priceProduct input element which contains the canonical price
+    const priceInput = this.page.locator('#priceProduct');
+    const priceValue = await priceInput.getAttribute('value');
+    return priceValue ? parseFloat(priceValue) : 0;
   }
 
   /**
@@ -245,27 +247,86 @@ export class ProductDetailPage extends BasePage {
 
   /**
    * Add product to cart
+   * Uses centralized SELECTORS.product.addToCart with fallback chain
+   * Falls back to semantic getByRole() for language-agnostic detection
    */
   async addToCart(): Promise<void> {
-    const addToCart = await firstWorkingLocator(this.page, SELECTORS.product.addToCart, {
-      contextLabel: 'product.addToCart',
-    });
-    await humanClick(addToCart);
+    let addToCartButton: Locator;
+    
+    try {
+      // Try centralized selectors first (data-testid, classes, etc.)
+      addToCartButton = await firstWorkingLocator(
+        this.page,
+        SELECTORS.product.addToCart,
+        { 
+          contextLabel: 'product.addToCart', 
+          requireVisible: true,
+          perSelectorTimeout: 500  // Shorter timeout for fast fallback
+        }
+      );
+    } catch (error) {
+      // Fallback: Use semantic getByRole for language-agnostic button detection
+      // Romanian: "Adauga in cos", Russian: "В корзину", English: "Add to cart"
+      addToCartButton = this.page.locator('#product').getByRole('button', {
+        name: /adauga in cos|в корзину|add to cart/i
+      }).first();
+      
+      // Verify it's visible
+      await addToCartButton.waitFor({ state: 'visible', timeout: 5000 });
+    }
+    
+    await addToCartButton.scrollIntoViewIfNeeded();
+    await humanClick(addToCartButton);
     await waitForCartUpdate(this.page);
     await randomDelay(300, 600);
   }
 
   /**
    * Open credit calculator modal
+   * Uses centralized SELECTORS.product.buyCredit with fallback chain
+   * Returns CreditModalComponent instance for proper decoupling
    */
-  async openCreditCalculator(): Promise<void> {
+  async openCreditCalculator(): Promise<any> {
+    // Import CreditModalComponent dynamically to avoid circular dependencies
+    const { CreditModalComponent } = await import('./components/credit-modal.component');
+    
+    let creditButton: Locator;
+    
+    try {
+      // Try centralized selectors first
+      creditButton = await firstWorkingLocator(
+        this.page,
+        SELECTORS.product.buyCredit,
+        { 
+          contextLabel: 'product.buyCredit', 
+          requireVisible: true,
+          perSelectorTimeout: 500  // Shorter timeout for fast fallback
+        }
+      );
+    } catch (error) {
+      // Fallback: Use getByRole with regex for dynamic price
+      // Matches "Credit de la 1241 lei/luna" with any price
+      creditButton = this.page.getByRole('button', { 
+        name: /Credit de la \d+/i 
+      }).first();
+      
+      // Verify it's visible
+      await creditButton.waitFor({ state: 'visible', timeout: 5000 });
+    }
+    
     // Scroll to make sure button is visible
-    await this.buyOnCreditButton.scrollIntoViewIfNeeded();
+    await creditButton.scrollIntoViewIfNeeded();
     await randomDelay(200, 400);
 
-    await humanClick(this.buyOnCreditButton);
+    await humanClick(creditButton);
+    
+    // Return CreditModalComponent instance - let consumer handle waiting
+    const modal = new CreditModalComponent(this.page);
+    // Basic wait to ensure modal starts opening
     await waitForModal(this.page, joinSelectors(SELECTORS.creditModal.modal));
     await randomDelay(300, 500);
+    
+    return modal;
   }
 
   /**

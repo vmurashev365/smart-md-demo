@@ -275,27 +275,35 @@ export class CreditModalComponent {
    * @param term - Term like "12 luni" or "12"
    */
   async selectPaymentTerm(term: string): Promise<void> {
-    const termSelector = this.termSelector;
+    // Extract number from term (e.g., "12 luni" → 12, "12" → 12)
+    const monthsMatch = term.match(/\d+/);
+    if (!monthsMatch) {
+      throw new Error(`Cannot extract month number from term: ${term}`);
+    }
+    const months = parseInt(monthsMatch[0], 10);
 
-    // Check if it's a select element or custom selector
-    const tagName = await termSelector.evaluate(el => el.tagName.toLowerCase());
+    // Get all term options (7 divs with payment rates)
+    const termOptions = this.page.locator(joinSelectors(SELECTORS.creditModal.termSelector));
+    const count = await termOptions.count();
 
-    if (tagName === 'select') {
-      await humanSelectOption(termSelector, term);
-    } else {
-      // Custom term selector - find and click option
-      const termOption = this.page.locator(`${SELECTORS.creditModal.termOption}:has-text("${term}")`);
-
-      if (!(await termOption.isVisible())) {
-        // Try clicking the selector to open dropdown
-        await humanClick(termSelector);
+    // Find option by month number in text
+    // Text format (multi-line):
+    //   "10 399\n4 rate" → 4 months, 10,399 MDL/month
+    //   "3 507\n13 rate" → 13 months, 3,507 MDL/month
+    for (let i = 0; i < count; i++) {
+      const optionText = await termOptions.nth(i).innerText();
+      // Match pattern: any digits, then newline, then month number + " rate"
+      const match = optionText.match(/(\d+)\s+rate/i);
+      if (match && parseInt(match[1], 10) === months) {
+        await termOptions.nth(i).scrollIntoViewIfNeeded();
         await randomDelay(200, 400);
+        await humanClick(termOptions.nth(i));
+        await waitForContentUpdate(this.page);
+        return;
       }
-
-      await humanClick(termOption);
     }
 
-    await waitForContentUpdate(this.page);
+    throw new Error(`Payment term for ${months} months not found. Available options: ${await termOptions.allInnerTexts()}`);
   }
 
   /**

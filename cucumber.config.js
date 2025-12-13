@@ -38,13 +38,13 @@ const common = {
 module.exports = {
   default: {
     ...common,
-    timeout: 10 * 1000, // 10 seconds per step (debugging)
+    timeout: 15 * 1000, // 15 seconds per step
   },
 
   smoke: {
     ...common,
     tags: '@smoke',
-    timeout: 10 * 1000, // 10 seconds for faster debugging
+    timeout: 15 * 1000, // 15 seconds per step
   },
   
   critical: {

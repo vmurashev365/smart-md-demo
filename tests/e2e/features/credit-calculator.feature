@@ -27,16 +27,16 @@ Feature: Credit Calculator
     And I should see the monthly payment amount
     And I should see at least 2 credit provider options
     And the credit offers should include one of:
-      | provider     |
-      | IuteCredit   |
-      | Microinvest  |
-      | EasyCredit   |
-      | Iute         |
+      | provider    |
+      | Credit      |
+      | maib liber  |
+      | STAR Card   |
+      | B 2 B       |
 
-    When I select "12 luni" payment term
+    When I select "13 luni" payment term
     Then the monthly payment should be recalculated
-    And the monthly payment should be approximately "product_price / 12"
+    And the monthly payment should be approximately "product_price / 13"
 
     When I close the credit calculator modal
     Then I should be back on the product page
-    And the add to cart button should still be visible
+    And the "Adauga in cos" button should be visible

@@ -28,16 +28,7 @@ export const TIMEOUTS = {
  */
 export async function waitForPageLoad(page: Page, timeout: number = TIMEOUTS.navigation): Promise<void> {
   await page.waitForLoadState('domcontentloaded', { timeout });
-  
-  // Try to wait for networkidle for desktop tests (skip for mobile)
-  if (process.env.DISABLE_HUMAN_DELAYS !== 'true') {
-    try {
-      await page.waitForLoadState('networkidle', { timeout: Math.min(timeout, 5000) });
-    } catch {
-      // networkidle didn't happen in time, but domcontentloaded is enough
-      console.log('[waitForPageLoad] networkidle timeout, continuing anyway');
-    }
-  }
+  // networkidle removed for speed - domcontentloaded is sufficient
 }
 
 /**
@@ -62,8 +53,8 @@ export async function waitForLoadersToDisappear(
   const loader = page.locator(loaderSelector);
 
   try {
-    // Wait for loader to appear (might not appear at all)
-    await loader.waitFor({ state: 'visible', timeout: 1000 });
+    // Reduced timeout for loader appearance (was 1000ms, now 200ms)
+    await loader.waitFor({ state: 'visible', timeout: 200 });
     // Then wait for it to disappear
     await loader.waitFor({ state: 'hidden', timeout });
   } catch {
@@ -101,17 +92,15 @@ export async function waitForContentUpdate(
   page: Page,
   timeout: number = TIMEOUTS.medium
 ): Promise<void> {
-  // Wait for any pending requests
-  await waitForNetworkIdle(page, timeout);
-
+  // networkidle removed for speed - just wait for loaders to disappear
+  
   // Wait for loaders
   await waitForLoadersToDisappear(page, timeout);
 
   // Wait for skeletons
   await waitForSkeletonsToDisappear(page, timeout);
 
-  // Small buffer for any animations
-  await page.waitForTimeout(TIMEOUTS.animation);
+  // Animation buffer removed for speed
 }
 
 /**
@@ -131,7 +120,7 @@ export async function waitForElementStable(
   const maxAttempts = 10;
 
   while (attempts < maxAttempts) {
-    await locator.page().waitForTimeout(100);
+    await locator.page().waitForTimeout(50);
     const currentBox = await locator.boundingBox();
 
     if (
@@ -224,7 +213,7 @@ export async function waitForMinimumElements(
     if (count >= minCount) {
       return;
     }
-    await locator.page().waitForTimeout(100);
+    await locator.page().waitForTimeout(50);
   }
 
   throw new Error(`Expected at least ${minCount} elements, but found ${await locator.count()}`);
@@ -256,11 +245,11 @@ export async function waitForProductListUpdate(
     const text = await firstCard.textContent().catch(() => '');
     // If card has substantial text (more than 10 chars), consider it loaded
     if (text && text.trim().length > 10) {
-      // Additional delay to ensure other cards also load
-      await page.waitForTimeout(1000);
+      // Reduced delay (was 1000ms, now 50ms)
+      await page.waitForTimeout(50);
       return;
     }
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(100);
   }
 }
 
@@ -278,8 +267,7 @@ export async function waitForModal(
   const modal = page.locator(modalSelector);
   await modal.waitFor({ state: 'visible', timeout });
 
-  // Wait for modal animation to complete
-  await page.waitForTimeout(TIMEOUTS.animation);
+  // Animation timeout removed for speed
 }
 
 /**
@@ -306,7 +294,7 @@ export async function waitForModalClose(
 export async function retryUntilSuccess<T>(
   action: () => Promise<T>,
   timeout: number = TIMEOUTS.medium,
-  interval: number = 500
+  interval: number = 100
 ): Promise<T> {
   const startTime = Date.now();
   let lastError: Error | null = null;
@@ -358,6 +346,5 @@ export async function waitForCartUpdate(
   await waitForNetworkIdle(page, timeout);
   await waitForLoadersToDisappear(page, timeout);
 
-  // Wait a bit for cart counter animation
-  await page.waitForTimeout(TIMEOUTS.animation);
+  // Animation timeout removed for speed
 }

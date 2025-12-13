@@ -134,6 +134,36 @@ export const UI_TRANSLATIONS = {
 };
 
 /**
+ * Comprehensive UI text translations (Merged from test-data.ts)
+ * Single source of truth for all UI text expectations
+ * Use this instead of UI_TEXT in test-data.ts (deprecated)
+ */
+export const UI_TEXT = {
+  ro: {
+    addToCart: 'Adauga in cos',
+    buyCredit: 'Cumpără în credit',
+    emptyCart: 'Coșul este gol',
+    search: 'Căutare',
+    filters: 'Filtre',
+    cart: 'Coș',
+    home: 'Acasă',
+    inStock: 'În stoc',
+    outOfStock: 'Lipsă din stoc',
+  },
+  ru: {
+    addToCart: 'В корзину',
+    buyCredit: 'Купить в кредит',
+    emptyCart: 'Корзина пуста',
+    search: 'Поиск',
+    filters: 'Фильтры',
+    cart: 'Корзина',
+    home: 'Главная',
+    inStock: 'В наличии',
+    outOfStock: 'Нет в наличии',
+  },
+};
+
+/**
  * Product identifiers that work across both languages (URL-based)
  * These patterns match product URLs regardless of RO/RU language
  */

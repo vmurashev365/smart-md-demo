@@ -25,7 +25,9 @@ When('I click the "Cumpără în credit" button', async function (this: CustomWo
   const price = await productPage.getPrice();
   this.storeValue('product_price', price);
 
-  await productPage.openCreditCalculator();
+  // openCreditCalculator() now returns CreditModalComponent instance
+  const creditModal = await productPage.openCreditCalculator();
+  this.storeValue('credit_modal', creditModal);
 });
 
 When('I click the buy on credit button', async function (this: CustomWorld) {
@@ -35,7 +37,9 @@ When('I click the buy on credit button', async function (this: CustomWorld) {
   const price = await productPage.getPrice();
   this.storeValue('product_price', price);
 
-  await productPage.openCreditCalculator();
+  // openCreditCalculator() now returns CreditModalComponent instance
+  const creditModal = await productPage.openCreditCalculator();
+  this.storeValue('credit_modal', creditModal);
 });
 
 Then('the credit calculator modal should appear', async function (this: CustomWorld) {
@@ -174,8 +178,8 @@ Then('I should be back on the product page', async function (this: CustomWorld) 
   const isModalVisible = await creditModal.isVisible();
   expect(isModalVisible).toBe(false);
   
-  // Verify product page elements are visible
-  const title = this.page.locator(joinSelectors(SELECTORS.product.title));
+  // Verify product page elements are visible (use :visible for desktop + mobile h1)
+  const title = this.page.locator(`${joinSelectors(SELECTORS.product.title)}:visible`);
   await expect(title).toBeVisible();
 });
 
@@ -218,9 +222,12 @@ Then('I should see available payment terms', async function (this: CustomWorld) 
 });
 
 Then('the add to cart button should still be visible', async function (this: CustomWorld) {
-  // Language-agnostic check using selectors
-  const addToCartButton = this.page.locator(joinSelectors(SELECTORS.product.addToCart));
-  await expect(addToCartButton.first()).toBeVisible({ timeout: 5000 });
+  // Use getByRole for language-agnostic button detection
+  // Romanian: "Adaugă în coș", Russian: "Добавить в корзину"
+  const addToCartButton = this.page.getByRole('button', { 
+    name: /adaugă în coș|добавить в корзину|add to cart/i 
+  }).first();
+  await expect(addToCartButton).toBeVisible({ timeout: 5000 });
 });
 
 Then('the "Adaugă în coș" button should still be visible', async function (this: CustomWorld) {

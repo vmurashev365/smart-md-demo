@@ -113,6 +113,9 @@ export class HomePage extends BasePage {
   async open(lang: Language = 'RO'): Promise<void> {
     const path = lang === 'RU' ? URLS.home.ru : URLS.home.ro;
     await this.goto(path);
+    
+    // Auto-dismiss promotional popups (non-blocking)
+    await this.dismissPopups();
   }
 
   /**
@@ -151,10 +154,16 @@ export class HomePage extends BasePage {
     const cat = category.trim().toLowerCase();
     const sub = subcategory?.trim().toLowerCase();
 
-    // Smart.md has a dedicated smartphones listing at /smartphone/ (used by recorder/codegen).
-    // The feature uses English navigation labels ("Catalog" > "Smartphone"), so we map it here.
-    if (sub && cat === 'catalog' && sub === 'smartphone') {
-      await this.goto('/smartphone/');
+    // Smart.md "Catalog" > "Smartphones" navigation (from Codegen)
+    // "Catalog" is a sidebar menu header, not a category link
+    if (sub && cat === 'catalog' && (sub === 'smartphone' || sub === 'smartphones')) {
+      // Click "Catalog" sidebar menu header
+      await humanClick(this.page.getByText('Catalog').first());
+      await randomDelay(300, 500);
+      
+      // Click "Smartphone" link in the opened menu
+      await humanClick(this.page.getByRole('link', { name: 'Smartphone', exact: true }));
+      await this.waitForPageLoad();
       return;
     }
 
@@ -264,7 +273,9 @@ export class HomePage extends BasePage {
     }
 
     const text = await cartCountEl.textContent();
-    const count = parseInt(text || '0', 10);
+    // Parse "Produse x1" or just "1"
+    const match = (text || '0').match(/x?(\d+)/i);
+    const count = match ? parseInt(match[1], 10) : 0;
     return isNaN(count) ? 0 : count;
   }
 

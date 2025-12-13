@@ -14,7 +14,7 @@ import { SELECTORS } from '../../shared/config/selectors';
 import { humanClick, humanWaitForContent, randomDelay } from '../../shared/utils/human-like';
 import { waitForPageLoad, waitForContentUpdate } from '../../shared/utils/wait-utils';
 import { detectLanguageFromUrl } from '../../shared/utils/language-utils';
-import { joinSelectors } from '../../shared/utils/locator-helper';
+import { joinSelectors, firstWorkingLocator } from '../../shared/utils/locator-helper';
 
 // ==================== Navigation ====================
 
@@ -128,6 +128,18 @@ Then('I store the product price as {string}', async function (
   this.logMessage(`Stored price: ${price} MDL`);
 });
 
+Then('I store the product name as {string}', async function (
+  this: CustomWorld,
+  key: string
+) {
+  // Import ProductDetailPage dynamically to get product name
+  const { ProductDetailPage } = await import('../../shared/page-objects/product-detail.page');
+  const productPage = new ProductDetailPage(this.page);
+  const name = await productPage.getTitle();
+  this.storeValue(key, name);
+  this.logMessage(`Stored product name: ${name}`);
+});
+
 // ==================== URL Assertions ====================
 
 Then('the URL should contain {string}', async function (
@@ -174,25 +186,59 @@ Then('the page should not return 404 error', async function (this: CustomWorld) 
 
 // ==================== Button Visibility ====================
 
+/**
+ * Button Visibility Map - Maps button names to centralized selectors
+ * Uses SELECTORS for Single Source of Truth
+ */
+const BUTTON_VISIBILITY_MAP = new Map<RegExp, string[]>([
+  [/adaug|co[sș]|корзин/i, SELECTORS.product.addToCart],
+  [/cump.*credit|credit/i, SELECTORS.product.buyCredit],
+]);
+
 Then('the {string} button should be visible', async function (
   this: CustomWorld,
   buttonText: string
 ) {
   const normalized = buttonText.trim().toLowerCase();
 
-  // Smart.md: Use getByRole for "Adauga in cos" / "В корзину" buttons
-  if (normalized.includes('adaug') || /co[sș]/i.test(buttonText) || normalized.includes('корзин')) {
-    const productContainer = this.page.locator('#product');
-    const button = productContainer.getByRole('button', { name: /adauga in cos|в корзину/i }).first();
-    await expect(button).toBeVisible({ timeout: 10000 });
-    return;
+  // Try to match against Button Visibility Map
+  for (const [pattern, selectors] of BUTTON_VISIBILITY_MAP.entries()) {
+    if (pattern.test(normalized)) {
+      // Use firstWorkingLocator to find visible button (more resilient)
+      try {
+        const button = await firstWorkingLocator(
+          this.page,
+          selectors,
+          { 
+            contextLabel: `button.${pattern.source}`, 
+            requireVisible: true,
+            perSelectorTimeout: 800
+          }
+        );
+        await expect(button).toBeVisible({ timeout: 10000 });
+        return;
+      } catch (error) {
+        // If centralized selectors fail, fall back to semantic getByRole
+        if (pattern.test('adaug')) {
+          const button = this.page.locator('#product').getByRole('button', { 
+            name: /adauga in cos|в корзину/i 
+          }).first();
+          await expect(button).toBeVisible({ timeout: 10000 });
+          return;
+        }
+        if (pattern.test('credit')) {
+          const button = this.page.getByRole('button', { 
+            name: /Credit de la \d+/i 
+          }).first();
+          await expect(button).toBeVisible({ timeout: 10000 });
+          return;
+        }
+        throw error;
+      }
+    }
   }
 
-  if (normalized.includes('cump') && normalized.includes('credit')) {
-    await expect(this.page.locator(joinSelectors(SELECTORS.product.buyCredit)).first()).toBeVisible({ timeout: 10000 });
-    return;
-  }
-
+  // Fallback: Generic text-based button locator
   const button = this.page.locator(
     `button:has-text("${buttonText}"), a:has-text("${buttonText}"), [role="button"]:has-text("${buttonText}")`
   );
@@ -205,41 +251,70 @@ Then('the {string} button should still be visible', async function (
 ) {
   const normalized = buttonText.trim().toLowerCase();
 
-  if (normalized.includes('adaug') || /co[sș]/i.test(buttonText) || normalized.includes('корзин')) {
-    await expect(this.page.locator(joinSelectors(SELECTORS.product.addToCart)).first()).toBeVisible();
-    return;
+  // Reuse Button Visibility Map for consistency
+  for (const [pattern, selectors] of BUTTON_VISIBILITY_MAP.entries()) {
+    if (pattern.test(normalized)) {
+      const button = this.page.locator(joinSelectors(selectors)).first();
+      await expect(button).toBeVisible();
+      return;
+    }
   }
 
-  if (normalized.includes('cump') && normalized.includes('credit')) {
-    await expect(this.page.locator(joinSelectors(SELECTORS.product.buyCredit)).first()).toBeVisible();
-    return;
-  }
-
+  // Fallback: Generic text-based button locator
   const button = this.page.locator(`button:has-text("${buttonText}"), a:has-text("${buttonText}")`);
   await expect(button.first()).toBeVisible();
 });
 
-// ==================== Generic Click ====================
+// ==================== Button Action Factory ====================
 
+/**
+ * Button Action Factory - Maps button names to Page Object methods
+ * Eliminates hardcoded logic inside step definitions
+ * Delegates specific click logic back to Page Objects
+ */
+type ButtonActionHandler = (world: CustomWorld, buttonText: string) => Promise<void>;
+
+const BUTTON_ACTION_MAP = new Map<RegExp, ButtonActionHandler>([
+  // Add to Cart Button - delegates to ProductDetailPage.addToCart()
+  [
+    /adaug|co[sș]|корзин/i,
+    async (world: CustomWorld) => {
+      const { ProductDetailPage } = await import('../../shared/page-objects/product-detail.page');
+      const productPage = new ProductDetailPage(world.page);
+      await productPage.addToCart();
+    }
+  ],
+  
+  // Credit Button - delegates to ProductDetailPage.openCreditCalculator()
+  [
+    /cump.*credit|credit/i,
+    async (world: CustomWorld) => {
+      const { ProductDetailPage } = await import('../../shared/page-objects/product-detail.page');
+      const productPage = new ProductDetailPage(world.page);
+      await productPage.openCreditCalculator();
+    }
+  ],
+]);
+
+/**
+ * Generic button click action with smart routing
+ * Uses ButtonActionFactory to delegate to appropriate Page Object methods
+ */
 When('I click the {string} button', async function (
   this: CustomWorld,
   buttonText: string
 ) {
   const normalized = buttonText.trim().toLowerCase();
 
-  // Key business strings: route through resilient selectors.
-  if (normalized.includes('adaug') || /co[sș]/i.test(buttonText) || normalized.includes('корзин')) {
-    await humanClick(this.page.locator(joinSelectors(SELECTORS.product.addToCart)).first());
-    await randomDelay(300, 600);
-    return;
+  // Try to match against Button Action Factory
+  for (const [pattern, handler] of BUTTON_ACTION_MAP.entries()) {
+    if (pattern.test(normalized)) {
+      await handler(this, buttonText);
+      return;
+    }
   }
 
-  if (normalized.includes('cump') && normalized.includes('credit')) {
-    await humanClick(this.page.locator(joinSelectors(SELECTORS.product.buyCredit)).first());
-    await randomDelay(300, 600);
-    return;
-  }
-
+  // Fallback: Generic text-based button locator
   const button = this.page
     .locator(
       `button:has-text("${buttonText}"), ` +

@@ -21,7 +21,7 @@ Feature: Catalog Experience
     Then all visible products should be "Apple" brand
     And the filter tag "Apple" should be displayed
     
-    When I apply sorting "Prețul: mic spre mare"
+    When I apply sorting "Ieftine"
     And I wait for the product list to update
     Then the products should be sorted by price ascending
     And the first product price should be less than the second product price

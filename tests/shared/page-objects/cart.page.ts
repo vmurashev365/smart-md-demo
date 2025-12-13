@@ -47,9 +47,10 @@ export class CartPage extends BasePage {
 
   /**
    * Cart total price
+   * Note: Smart.md has multiple .total elements, we take the first one (span.total in label)
    */
   get totalPrice(): Locator {
-    return this.page.locator(joinSelectors(SELECTORS.cart.total));
+    return this.page.locator(joinSelectors(SELECTORS.cart.total)).first();
   }
 
   /**
@@ -101,9 +102,35 @@ export class CartPage extends BasePage {
    * @returns Item count
    */
   async getItemCount(): Promise<number> {
-    if (await this.isEmpty()) {
+    // Wait for page to stabilize
+    await this.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    await randomDelay(500, 1000);
+    
+    const isEmpty = await this.isEmpty();
+    
+    if (isEmpty) {
       return 0;
     }
+    
+    // Smart.md displays cart count as "Produse x1" or "Produse x2" inside #total_block
+    // Extract count from this text instead of counting DOM elements
+    try {
+      const totalBlock = this.page.locator('#total_block');
+      const text = await totalBlock.textContent({ timeout: 3000 });
+      
+      if (text) {
+        // Match "Produse x1", "Produse x2", etc. (with possible whitespace/newlines between words)
+        const match = text.match(/Produse\s+x(\d+)/i);
+        if (match) {
+          return parseInt(match[1], 10);
+        }
+      }
+    } catch (error) {
+      // Fallback to counting cart items if text extraction fails
+      return await this.cartItems.count();
+    }
+    
+    // Final fallback
     return await this.cartItems.count();
   }
 
@@ -112,10 +139,16 @@ export class CartPage extends BasePage {
    * @returns true if empty
    */
   async isEmpty(): Promise<boolean> {
-    const emptyState = await firstWorkingLocator(this.page, SELECTORS.cart.emptyState, {
-      contextLabel: 'cart.emptyState',
-    });
-    return await emptyState.isVisible();
+    try {
+      const emptyState = await firstWorkingLocator(this.page, SELECTORS.cart.emptyState, {
+        contextLabel: 'cart.emptyState',
+        timeout: 2000, // Shorter timeout since we're just checking
+      });
+      return await emptyState.isVisible();
+    } catch {
+      // If empty state not found, cart is not empty
+      return false;
+    }
   }
 
   /**
@@ -141,9 +174,15 @@ export class CartPage extends BasePage {
    * @returns Item title
    */
   async getItemTitle(index: number): Promise<string> {
-    const item = this.getCartItem(index);
-    const titleEl = item.locator(joinSelectors(SELECTORS.cart.itemTitle));
-    return (await titleEl.textContent()) || '';
+    // Smart.md cart displays product titles in h4 tags
+    let titleElements = this.page.locator('h4');
+    const count = await titleElements.count();
+    
+    if (index >= count) {
+      throw new Error(`Item index ${index} out of range. Only ${count} h4 elements found.`);
+    }
+    
+    return (await titleElements.nth(index).textContent()) || '';
   }
 
   /**
@@ -220,9 +259,18 @@ export class CartPage extends BasePage {
   async removeItem(index: number): Promise<void> {
     const item = this.getCartItem(index);
     const removeBtn = item.locator(joinSelectors(SELECTORS.cart.removeBtn));
+    
     await humanClick(removeBtn);
-    await waitForCartUpdate(this.page);
     await randomDelay(300, 500);
+    
+    // Smart.md shows a modal confirmation - click "Eliminare" button
+    const confirmBtn = this.page.getByRole('button', { name: 'Eliminare' });
+    if (await confirmBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await confirmBtn.click();
+    }
+    
+    await waitForCartUpdate(this.page);
+    await randomDelay(500, 1000);
   }
 
   /**

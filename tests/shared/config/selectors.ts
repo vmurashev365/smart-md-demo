@@ -79,6 +79,8 @@ export const SELECTORS = {
 
     cartCount: [
       '[data-testid="cart-count"]',
+      // From Codegen: cart info block contains "Produse x1"
+      '#total_block',
       '.cart-count',
       '.cart-badge',
       '.cart-qty',
@@ -450,6 +452,8 @@ export const SELECTORS = {
     addToCart: [
       '[data-testid="add-to-cart"]',
       '[data-action="add-to-cart"]',
+      // From Codegen: button inside #product with text "Adauga in cos"
+      '#product button:has-text("Adauga in cos")',
       'button.add-to-cart',
       '.btn-add-cart',
       '.add-to-cart',
@@ -458,11 +462,13 @@ export const SELECTORS = {
     buyCredit: [
       '[data-testid="buy-credit"]',
       '[data-action="credit"]',
+      // Use regex + :visible to match dynamic price: "Credit de la 1241 lei/luna"
+      // :visible ensures we get only the visible button (desktop or mobile sticky)
+      'button:has-text(/Credit de la \\d+/):visible',
+      'button[class*="bg-[#f78122]"]:has-text("Credit de la")',
       '.credit-btn',
       '.buy-credit',
       '.btn-credit',
-      'button:has-text("credit")',
-      'a:has-text("credit")',
     ],
 
     buyOneClick: [
@@ -543,6 +549,9 @@ export const SELECTORS = {
   creditModal: {
     modal: [
       '[data-testid="credit-calculator"]',
+      // Credit modal has fixed overlay with high z-index
+      'div.fixed.z-\\[100000\\]',
+      '[class*="z-[100000]"][class*="fixed"]',
       '.credit-modal',
       '.credit-calculator',
       '.modal-credit',
@@ -554,6 +563,9 @@ export const SELECTORS = {
     monthlyPayment: [
       '[data-testid="monthly-payment"]',
       '[data-monthly]',
+      // Selected payment option has yellow background
+      'div.bg-yellow p.text-2xl',
+      '.bg-yellow .text-2xl',
       '.monthly-payment',
       '.credit-amount',
       '.payment-amount',
@@ -568,6 +580,10 @@ export const SELECTORS = {
     providers: [
       '[data-testid="credit-provider"]',
       '[data-provider]',
+      // Provider tabs: Credit, maib liber, STAR Card, B 2 B
+      // Codegen shows they are simple text elements
+      '.flex.w-full.justify-between p',
+      '.rounded-t-xl',
       '.credit-provider',
       '.bank-option',
       '.provider-item',
@@ -579,6 +595,9 @@ export const SELECTORS = {
     termSelector: [
       '[data-testid="credit-term"]',
       '[data-action="select-term"]',
+      // Rate options in grid - clickable divs with text like '507 13 rate'
+      '.grid.gap-4.grid-cols-3 > div',
+      '.relative.p-3.rounded-xl',
       '.term-select',
       'select.term',
       '.term-options',
@@ -595,12 +614,16 @@ export const SELECTORS = {
 
     applyButton: [
       '[data-testid="apply-credit"]',
+      // Continuati button
+      'button:has-text("Continuati")',
       '.apply-credit',
       '.btn-apply',
     ],
 
     closeButton: [
       '[data-testid="close-modal"]',
+      // X button in top right corner
+      'button.absolute.top-0.right-0',
       '[aria-label="Close"]',
       '.modal-close',
       '.close-btn',
@@ -622,6 +645,8 @@ export const SELECTORS = {
     container: [
       '[data-testid="cart-container"]',
       '[data-testid="cart-page"]',
+      // Smart.md /cart page - from DevTools screenshot
+      '#cart_products',
       '.cart-container',
       '.shopping-cart',
       '.cart',
@@ -631,18 +656,29 @@ export const SELECTORS = {
     item: [
       '[data-testid="cart-item"]',
       '[data-cart-item]',
+      // Smart.md /cart page - each item is a .cart_box container
+      '.cart_box',
+      '#cart_products .cart_box',
+      'div[id^="cart_box_"]',
       '.cart-item',
       '.cart-product',
     ],
 
     itemTitle: [
       '[data-testid="item-title"]',
+      // Smart.md /cart page - product title inside cart_product_info
+      '.cart_product_info h4',
+      '.cart_product_info a',
+      '.cart_box h4',
+      'h4',
       '.item-title',
       '.cart-item-title',
     ],
 
     itemPrice: [
       '[data-testid="item-price"]',
+      // Smart.md /cart page - price with class .price_special (must be first, not .columns which contains it)
+      '.price_special',
       '.item-price',
       '.cart-item-price',
     ],
@@ -651,6 +687,9 @@ export const SELECTORS = {
 
     quantity: [
       '[data-testid="quantity"]',
+      // Smart.md /cart page - input name="quantity[id]"
+      '.box_quantity input[type="number"]',
+      'input[name^="quantity["]',
       '.quantity-input',
       'input[name="qty"]',
       'input.qty',
@@ -659,6 +698,10 @@ export const SELECTORS = {
     increaseBtn: [
       '[data-testid="qty-plus"]',
       '[data-action="increase"]',
+      // Smart.md /cart page - from DevTools screenshot
+      '.cart_add',
+      'span.cart_add',
+      '.box_quantity .cart_add',
       '.qty-plus',
       'button.increase',
       '.btn-increase',
@@ -668,6 +711,10 @@ export const SELECTORS = {
     decreaseBtn: [
       '[data-testid="qty-minus"]',
       '[data-action="decrease"]',
+      // Smart.md /cart page - from DevTools screenshot
+      '.cart_remove',
+      'span.cart_remove',
+      '.box_quantity .cart_remove',
       '.qty-minus',
       'button.decrease',
       '.btn-decrease',
@@ -677,6 +724,9 @@ export const SELECTORS = {
     removeBtn: [
       '[data-testid="remove-item"]',
       '[data-action="remove"]',
+      // Smart.md /cart page - parent span has data-id, child .text_remove doesn't
+      '.box_remove span[data-id]',
+      '.box_remove > span[onclick*="_removeProduct"]',
       '.remove-item',
       'button.remove',
       '.delete-item',
@@ -691,6 +741,9 @@ export const SELECTORS = {
 
     total: [
       '[data-testid="cart-total"]',
+      // Smart.md /cart page - total price in label > span.total > span (nested structure)
+      'label span.total span',
+      'label span.total',
       '.cart-total',
       '.total-price',
     ],
@@ -735,12 +788,16 @@ export const SELECTORS = {
   cartPopup: {
     container: [
       '[data-testid="cart-popup"]',
+      // From Codegen: popup with cart info
+      '#total_block',
       '.cart-popup',
       '.mini-cart',
     ],
 
     message: [
       '[data-testid="cart-message"]',
+      // From Codegen: #total_block contains "Coșul dvs"
+      '#total_block',
       '.cart-message',
       '.added-message',
       '.success-message',
@@ -759,6 +816,8 @@ export const SELECTORS = {
 
     closeBtn: [
       '[data-testid="close-popup"]',
+      // From Codegen: close button for popup
+      '.popmechanic-close',
       '.close-popup',
     ],
   },

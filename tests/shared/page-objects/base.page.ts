@@ -318,6 +318,56 @@ export abstract class BasePage {
     await expect(this.page).toHaveURL(new RegExp(text));
   }
 
+  // ==================== Popup Management ====================
+
+  /**
+   * Dismiss promotional/advertising popups if present
+   * Smart.md shows various popups (popmechanic, promo banners, etc.)
+   * This method attempts to close them without failing if not found
+   * 
+   * @returns true if popup was closed, false if no popup found
+   */
+  async dismissPopups(): Promise<boolean> {
+    try {
+      // Popmechanic popup (most common)
+      const popmechanicClose = this.page.locator('.popmechanic-close').first();
+      if (await popmechanicClose.isVisible({ timeout: 2000 })) {
+        await humanClick(popmechanicClose);
+        await randomDelay(300, 500);
+        return true;
+      }
+
+      // Generic modal overlays
+      const modalOverlay = this.page.locator(joinSelectors(SELECTORS.common.modalOverlay)).first();
+      if (await modalOverlay.isVisible({ timeout: 1000 })) {
+        await humanClick(modalOverlay);
+        await randomDelay(300, 500);
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      // Silently fail - popup might not exist
+      return false;
+    }
+  }
+
+  /**
+   * Aggressively dismiss all visible popups
+   * Tries multiple strategies to close promotional content
+   * 
+   * @param maxAttempts - Maximum number of attempts (default: 3)
+   */
+  async dismissAllPopups(maxAttempts: number = 3): Promise<void> {
+    for (let i = 0; i < maxAttempts; i++) {
+      const dismissed = await this.dismissPopups();
+      if (!dismissed) {
+        break; // No more popups found
+      }
+      await randomDelay(200, 400);
+    }
+  }
+
   // ==================== Common Elements ====================
 
   /**

@@ -194,31 +194,11 @@ export const BRANDS = {
 
 /**
  * UI text expectations
+ * @deprecated Use UI_TEXT from language-utils.ts instead (Single Source of Truth)
+ * This export is kept for backward compatibility only
  */
-export const UI_TEXT = {
-  ro: {
-    addToCart: 'Adauga in cos',
-    buyCredit: 'Cumpără în credit',
-    emptyCart: 'Coșul este gol',
-    search: 'Căutare',
-    filters: 'Filtre',
-    cart: 'Coș',
-    home: 'Acasă',
-    inStock: 'În stoc',
-    outOfStock: 'Lipsă din stoc',
-  },
-  ru: {
-    addToCart: 'В корзину',
-    buyCredit: 'Купить в кредит',
-    emptyCart: 'Корзина пуста',
-    search: 'Поиск',
-    filters: 'Фильтры',
-    cart: 'Корзина',
-    home: 'Главная',
-    inStock: 'В наличии',
-    outOfStock: 'Нет в наличии',
-  },
-};
+import { UI_TEXT as UNIFIED_UI_TEXT } from '../utils/language-utils';
+export const UI_TEXT = UNIFIED_UI_TEXT;
 
 /**
  * Test user credentials (if needed)
@@ -269,7 +249,7 @@ export default {
   CREDIT_TERMS,
   SORT_OPTIONS,
   BRANDS,
-  UI_TEXT,
+  UI_TEXT, // Re-exported from language-utils.ts (Single Source of Truth)
   TEST_USER,
   PRICE_THRESHOLDS,
   EXPECTED_COUNTS,
