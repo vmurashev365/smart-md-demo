@@ -382,21 +382,16 @@ export abstract class BaseApiClient {
     // Try JSON parsing for JSON content type
     if (contentType.includes('application/json')) {
       try {
-        return await response.json() as T;
+        // Clone response to ensure we can read text if JSON fails
+        const clone = response.clone();
+        return await clone.json() as T;
       } catch (jsonError) {
-        // JSON parsing failed (e.g., empty body, malformed JSON, or HTML error page)
         console.log(`⚠️ JSON parse failed despite Content-Type: ${contentType}`);
         
-        // Clone response to read body again (response.json() consumes the stream)
-        // Since we already consumed it, we need to handle this case
-        // Return empty object or the error message
-        const errorInfo = {
-          parseError: 'Failed to parse JSON response',
-          contentType,
-          hint: 'Server may have returned HTML error page (e.g., Cloudflare)',
-        };
-        console.log(`⚠️ Parse error details:`, errorInfo);
-        return errorInfo as unknown as T;
+        // Fallback to text so the error is visible
+        const text = await response.text();
+        console.log(`   Falling back to text response: ${text.substring(0, 200)}...`);
+        return text as unknown as T;
       }
     }
 

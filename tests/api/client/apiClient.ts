@@ -128,12 +128,8 @@ export class ApiClient extends BaseApiClient {
       url = `${endpoint}?${searchParams.toString()}`;
     }
 
-    // Use BaseApiClient's request method with proper headers
-    const response = await this.request<T>({
-      method: 'GET',
-      endpoint: url,
-      headers: this.buildHeaders(),
-    });
+    // Use BaseApiClient's get method
+    const response = await super.get<T>(url, this.buildHeaders());
 
     // Convert to legacy format
     return this.toLegacyResponse(response);
@@ -155,12 +151,7 @@ export class ApiClient extends BaseApiClient {
     data?: unknown,
     _options: { actionType?: ActionType } = {}
   ): Promise<ApiResponse<T>> {
-    const response = await this.request<T>({
-      method: 'POST',
-      endpoint,
-      body: data,
-      headers: this.buildHeaders(),
-    });
+    const response = await super.post<T>(endpoint, data, this.buildHeaders());
     return this.toLegacyResponse(response);
   }
 
@@ -180,12 +171,7 @@ export class ApiClient extends BaseApiClient {
     data?: unknown,
     _options: { actionType?: ActionType } = {}
   ): Promise<ApiResponse<T>> {
-    const response = await this.request<T>({
-      method: 'PUT',
-      endpoint,
-      body: data,
-      headers: this.buildHeaders(),
-    });
+    const response = await super.put<T>(endpoint, data, this.buildHeaders());
     return this.toLegacyResponse(response);
   }
 
@@ -203,11 +189,7 @@ export class ApiClient extends BaseApiClient {
     endpoint: string,
     _options: { actionType?: ActionType } = {}
   ): Promise<ApiResponse<T>> {
-    const response = await this.request<T>({
-      method: 'DELETE',
-      endpoint,
-      headers: this.buildHeaders(),
-    });
+    const response = await super.delete<T>(endpoint, this.buildHeaders());
     return this.toLegacyResponse(response);
   }
 

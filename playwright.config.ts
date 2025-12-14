@@ -26,8 +26,8 @@ function getWorkerCount(): number {
   
   // Normal profile: limited parallelism
   if (profile === 'normal') {
-    console.log('🚶 Normal profile: limiting to 1 worker for throttling');
-    return 1;
+    console.log('🚶 Normal profile: limiting to 2 workers for throttling');
+    return 2;
   }
   
   // Fast/burst profiles: allow parallelism
