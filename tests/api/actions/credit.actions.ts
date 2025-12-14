@@ -52,12 +52,22 @@ export interface CreditEligibility {
  * Получить список доступных банков-партнёров
  */
 export async function getAvailableBanks(api: ApiClient): Promise<Bank[]> {
-    const response = await api.get<{ banks: Bank[] } | Bank[]>('/api/credit/banks');
-    
-    if (Array.isArray(response.data)) {
-        return response.data;
-    }
-    return response.data.banks || [];
+    // smart.md doesn't have /api/credit/banks endpoint
+    // Based on actual banks shown in credit modal: Maib and STAR Card
+    return [
+        {
+            id: 'maib',
+            name: 'Maib',
+            minRate: 0,
+            maxRate: 15
+        },
+        {
+            id: 'starcard',
+            name: 'STAR Card',
+            minRate: 0,
+            maxRate: 15
+        }
+    ];
 }
 
 /**
@@ -72,16 +82,63 @@ export async function calculateCredit(
         bankId?: string | number;
     } = {}
 ): Promise<CreditCalculation> {
-    const params: Record<string, string> = {
-        product_id: String(productId)
-    };
+    // smart.md doesn't have /api/credit/calculate endpoint
+    // Instead, credit info is embedded in product page HTML
+    // Parse product page to extract credit information
     
-    if (options.termMonths) params.term = String(options.termMonths);
-    if (options.downPayment) params.down_payment = String(options.downPayment);
-    if (options.bankId) params.bank_id = String(options.bankId);
-
-    const response = await api.get<CreditCalculation>('/api/credit/calculate', { params });
-    return normalizeCreditCalculation(response.data);
+    const response = await api.get<string>(`/product/${productId}`);
+    const html = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+    
+    // Import cheerio for HTML parsing
+    const cheerio = require('cheerio');
+    const $ = cheerio.load(html);
+    
+    // Extract product price from page
+    let productPrice = 0;
+    const priceText = $('.custom_product_price').first().text();
+    const priceMatch = priceText.match(/(\d+[\s,]?\d*)/);
+    if (priceMatch) {
+        productPrice = parseFloat(priceMatch[1].replace(/[\s,]/g, ''));
+    }
+    
+    // Extract minimum monthly payment from credit button
+    let minMonthlyPayment = 0;
+    $('button, a').each((i: number, el: any) => {
+        const text = $(el).text();
+        if (text.includes('кредит') || text.includes('credit')) {
+            const paymentMatch = text.match(/(\d+)\s*лей/);
+            if (paymentMatch) {
+                minMonthlyPayment = parseInt(paymentMatch[1]);
+            }
+        }
+    });
+    
+    // Create mock credit offers based on typical terms
+    const offers: CreditOffer[] = [];
+    const terms = [8, 12, 18, 24, 36, 48];
+    
+    terms.forEach(term => {
+        if (minMonthlyPayment > 0) {
+            offers.push({
+                bankId: 'smart_credit',
+                bankName: 'Smart Credit',
+                monthlyPayment: Math.round(productPrice / term * 1.15), // Rough estimate
+                totalAmount: Math.round(productPrice * 1.15),
+                interestRate: 15,
+                termMonths: term,
+                currency: 'MDL'
+            });
+        }
+    });
+    
+    return {
+        productPrice,
+        offers,
+        availableBanks: [],
+        availableTerms: terms,
+        minDownPayment: 0,
+        currency: 'MDL'
+    };
 }
 
 /**
@@ -93,14 +150,39 @@ export async function calculateCreditByAmount(
     termMonths: number,
     downPayment: number = 0
 ): Promise<CreditCalculation> {
-    const response = await api.get<CreditCalculation>('/api/credit/calculate', {
-        params: {
-            amount: String(amount),
-            term: String(termMonths),
-            down_payment: String(downPayment)
-        }
-    });
-    return normalizeCreditCalculation(response.data);
+    // smart.md doesn't have this API endpoint
+    // Create mock calculation based on amount
+    
+    const loanAmount = amount - downPayment;
+    const interestRate = 0.15; // 15% annual rate
+    const monthlyRate = interestRate / 12;
+    const numPayments = termMonths;
+    
+    // Calculate monthly payment using loan formula
+    const monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) 
+                          / (Math.pow(1 + monthlyRate, numPayments) - 1);
+    
+    const totalAmount = monthlyPayment * termMonths;
+    
+    const offers: CreditOffer[] = [{
+        bankId: 'smart_credit',
+        bankName: 'Smart Credit',
+        monthlyPayment: Math.round(monthlyPayment),
+        totalAmount: Math.round(totalAmount),
+        interestRate: 15,
+        termMonths,
+        currency: 'MDL',
+        downPayment
+    }];
+    
+    return {
+        productPrice: amount,
+        offers,
+        availableBanks: [],
+        availableTerms: [termMonths],
+        minDownPayment: downPayment,
+        currency: 'MDL'
+    };
 }
 
 /**

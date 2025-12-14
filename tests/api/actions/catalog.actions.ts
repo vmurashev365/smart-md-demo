@@ -4,7 +4,8 @@
  * Operations for working with categories, products, filters.
  */
 
-import { ApiClient } from '../client/apiClient';
+import { BrowserApiClient } from '../clients/browser-api.client';
+import { HtmlParser } from '../utils/html-parser';
 
 // === TYPES ===
 
@@ -57,26 +58,38 @@ export interface CatalogPage {
 
 /**
  * Получить список всех категорий
+ * Note: smart.md has a complex dynamic menu structure. 
+ * Returning hardcoded known categories for testing purposes.
  */
-export async function getCategories(api: ApiClient): Promise<Category[]> {
-    const response = await api.get<{ categories: Category[] } | Category[]>('/api/categories');
+export async function getCategories(api: BrowserApiClient): Promise<Category[]> {
+    // Instead of parsing homepage, load actual category pages to get localized names
+    // This ensures we get correct language for category names
+    const knownSlugs = ['smartphone', 'laptop', 'televizoare', 'frigidere'];
+    const categories: Category[] = [];
     
-    if (Array.isArray(response.data)) {
-        return response.data;
+    for (const slug of knownSlugs) {
+        const category = await getCategoryBySlug(api, slug);
+        if (category) {
+            categories.push(category);
+        }
     }
-    return response.data.categories || [];
+    
+    return categories;
 }
 
 /**
  * Получить категорию по slug
  */
 export async function getCategoryBySlug(
-    api: ApiClient,
+    api: BrowserApiClient,
     slug: string
 ): Promise<Category | null> {
     try {
-        const response = await api.get<Category>(`/api/category/${slug}`);
-        return response.data;
+        const response = await api.get<string>(`/${slug}`, {
+            waitForSelector: '.custom_product_content[data-visely-article-product-id]'
+        });
+        const html = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+        return HtmlParser.parseCategoryPage(html, slug);
     } catch {
         return null;
     }
@@ -86,7 +99,7 @@ export async function getCategoryBySlug(
  * Получить товары категории
  */
 export async function getCategoryProducts(
-    api: ApiClient,
+    api: BrowserApiClient,
     categorySlug: string,
     options: {
         page?: number;
@@ -95,29 +108,61 @@ export async function getCategoryProducts(
         filters?: Record<string, string>;
     } = {}
 ): Promise<CatalogPage> {
-    const params: Record<string, string> = {};
+    const params: Record<string, string> = {
+        q: '', // Required by smart.md
+        page: '1' // Always 1, real pagination via offset
+    };
     
-    if (options.page) params.page = String(options.page);
-    if (options.limit) params.limit = String(options.limit);
-    if (options.sort) params.sort = options.sort;
+    // smart.md uses offset for pagination (40 items per page)
+    // offset=0 (page 1), offset=40 (page 2), offset=80 (page 3), etc.
+    const limit = options.limit || 40;
+    const offset = ((options.page || 1) - 1) * limit;
+    params.offset = String(offset);
+    
+    // smart.md uses sortBy with values like 'price-asc', 'price-desc'
+    if (options.sort) {
+        const sortMap: Record<string, string> = {
+            'price_asc': 'price-asc',
+            'price_desc': 'price-desc',
+            'popular': 'popularity',
+            'new': 'newest'
+        };
+        params.sortBy = sortMap[options.sort] || options.sort;
+    }
+    
     if (options.filters) {
         Object.assign(params, options.filters);
     }
 
-    const response = await api.get<CatalogPage>(`/api/category/${categorySlug}/products`, { params });
-    return normalizeCatalogPage(response.data);
+    const response = await api.get<string>(`/${categorySlug}`, { 
+        waitForSelector: '.custom_product_content[data-visely-article-product-id]',
+        params
+    });
+    const html = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+    
+    const catalogPage = HtmlParser.parseCatalogPage(html, categorySlug, options.page || 1);
+    
+    // Debug: log if no products found
+    if (catalogPage.products.length === 0) {
+        console.warn(`⚠️  No products found for category: ${categorySlug}`);
+        console.warn(`   HTML length: ${html.length} characters`);
+        console.warn(`   Page title: ${html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1] || 'N/A'}`);
+    }
+    
+    return catalogPage;
 }
 
 /**
  * Получить детали товара по ID
  */
 export async function getProductById(
-    api: ApiClient,
+    api: BrowserApiClient,
     productId: string | number
 ): Promise<Product | null> {
     try {
-        const response = await api.get<Product>(`/api/product/${productId}`);
-        return response.data;
+        const response = await api.get<string>(`/product/${productId}`);
+        const html = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+        return HtmlParser.parseProductDetails(html);
     } catch {
         return null;
     }
@@ -127,12 +172,13 @@ export async function getProductById(
  * Получить детали товара по slug (URL)
  */
 export async function getProductBySlug(
-    api: ApiClient,
+    api: BrowserApiClient,
     slug: string
 ): Promise<Product | null> {
     try {
-        const response = await api.get<Product>(`/api/product/slug/${slug}`);
-        return response.data;
+        const response = await api.get<string>(`/${slug}`);
+        const html = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+        return HtmlParser.parseProductDetails(html);
     } catch {
         return null;
     }
@@ -142,41 +188,52 @@ export async function getProductBySlug(
  * Получить доступные фильтры для категории
  */
 export async function getCategoryFilters(
-    api: ApiClient,
+    api: BrowserApiClient,
     categorySlug: string
 ): Promise<CatalogFilter[]> {
-    const response = await api.get<{ filters: CatalogFilter[] }>(`/api/category/${categorySlug}/filters`);
-    return response.data.filters || [];
+    const response = await api.get<string>(`/${categorySlug}`);
+    const html = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+    return HtmlParser.parseFilters(html);
 }
 
 /**
  * Получить похожие товары
  */
 export async function getSimilarProducts(
-    api: ApiClient,
+    api: BrowserApiClient,
     productId: string | number,
     limit: number = 4
 ): Promise<Product[]> {
-    const response = await api.get<{ products: Product[] }>(
-        `/api/product/${productId}/similar`,
-        { params: { limit: String(limit) } }
-    );
-    return response.data.products || [];
+    // Get product page and parse similar products section
+    const response = await api.get<string>(`/product/${productId}`);
+    const html = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+    
+    // Parse similar products from the product page
+    const products = HtmlParser.parseProducts(html);
+    return products.slice(0, limit);
 }
 
 /**
  * Получить товары по акции/распродаже
  */
 export async function getPromotionProducts(
-    api: ApiClient,
+    api: BrowserApiClient,
     promotionType: 'sale' | 'new' | 'popular' | 'recommended',
     limit: number = 12
 ): Promise<Product[]> {
-    const response = await api.get<{ products: Product[] }>(
-        `/api/promotions/${promotionType}`,
-        { params: { limit: String(limit) } }
-    );
-    return response.data.products || [];
+    // Map promotion types to possible URL paths
+    const urlMap: Record<string, string> = {
+        'sale': '/promotii',
+        'new': '/new',
+        'popular': '/popular',
+        'recommended': '/'
+    };
+    
+    const url = urlMap[promotionType] || '/';
+    const response = await api.get<string>(url);
+    const html = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+    const products = HtmlParser.parseProducts(html);
+    return products.slice(0, limit);
 }
 
 // === HELPERS ===

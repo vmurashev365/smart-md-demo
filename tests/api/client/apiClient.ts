@@ -86,25 +86,17 @@ export class ApiClient extends BaseApiClient {
   }
 
   /**
-   * Initialize client (no-op for backward compatibility)
-   *
-   * BaseApiClient doesn't require initialization, but this method
-   * is kept for backward compatibility with existing code.
-   *
-   * @deprecated No longer needed - client is ready to use immediately
+   * Initialize client - now required to set up Playwright request context
    */
   async init(): Promise<void> {
-    // No-op: BaseApiClient doesn't need initialization
-    // Kept for backward compatibility
+    await super.init();
   }
 
   /**
-   * Dispose client (no-op for backward compatibility)
-   *
-   * @deprecated No longer needed
+   * Dispose client - cleans up Playwright request context
    */
   async dispose(): Promise<void> {
-    // No-op: BaseApiClient uses fetch, no context to dispose
+    await super.dispose();
   }
 
   /**

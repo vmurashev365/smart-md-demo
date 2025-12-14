@@ -13,13 +13,13 @@
     "test:mobile:all": "npm run test:mobile:ios && npm run test:mobile:android",
     "test:e2e": "cucumber-js --config cucumber.config.js --profile e2e",
     "test:parallel": "cucumber-js --config cucumber.config.js --profile parallel",
-    "test:headed": "HEADLESS=false cucumber-js --config cucumber.config.js",
-    "test:debug": "DEBUG=cucumber* cucumber-js --config cucumber.config.js",
-    "test:api": "API_PROFILE=stealth npx playwright test tests/api/specs --project=api",
-    "test:api:smoke": "API_PROFILE=stealth npx playwright test tests/api/specs --project=api --grep @smoke",
-    "test:api:normal": "API_PROFILE=normal npx playwright test tests/api/specs --project=api",
-    "test:api:fast": "API_PROFILE=fast npx playwright test tests/api/specs --project=api",
-    "test:api:ci": "API_PROFILE=burst npx playwright test tests/api/specs --project=api",
+    "test:headed": "cross-env HEADLESS=false cucumber-js --config cucumber.config.js",
+    "test:debug": "cross-env DEBUG=cucumber* cucumber-js --config cucumber.config.js",
+    "test:api": "npx playwright test tests/api/specs --project=api",
+    "test:api:smoke": "npx playwright test tests/api/specs --project=api --grep @smoke",
+    "test:api:normal": "cross-env API_PROFILE=normal npx playwright test tests/api/specs --project=api",
+    "test:api:fast": "cross-env API_PROFILE=fast npx playwright test tests/api/specs --project=api",
+    "test:api:ci": "cross-env API_PROFILE=burst npx playwright test tests/api/specs --project=api",
     "test:bdd:api": "cucumber-js --config cucumber-api.config.js",
     "test:bdd:api:smoke": "cucumber-js --config cucumber-api.config.js --profile smoke",
     "test:bdd:api:ci": "cucumber-js --config cucumber-api.config.js --profile ci",
@@ -54,6 +54,7 @@
     "@typescript-eslint/parser": "^6.13.0",
     "allure-cucumberjs": "^2.9.2",
     "allure-playwright": "^3.4.3",
+    "cross-env": "^10.1.0",
     "dotenv": "^16.3.1",
     "eslint": "^8.55.0",
     "eslint-config-prettier": "^9.1.0",
@@ -66,5 +67,8 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "cheerio": "^1.1.0"
   }
 }

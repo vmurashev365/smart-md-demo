@@ -7,6 +7,7 @@
  * @module base.client
  */
 
+import { request, APIRequestContext } from '@playwright/test';
 import { ProfileConfig, getCurrentProfile } from '../utils/profiles';
 import {
   waitForNextSlot,
@@ -115,6 +116,9 @@ export abstract class BaseApiClient {
   /** Enable verbose logging */
   protected verbose: boolean;
 
+  /** Playwright request context */
+  protected requestContext: APIRequestContext | null = null;
+    public lastResponseText: string = ''; // For debugging HTML parsing
   /**
    * Create a new API client
    *
@@ -132,6 +136,34 @@ export abstract class BaseApiClient {
       console.log(`🔌 ${this.constructor.name} initialized`);
       console.log(`   Base URL: ${this.baseUrl}`);
       console.log(`   Profile: ${this.profile.name}`);
+    }
+  }
+
+  /**
+   * Initialize Playwright request context
+   * Must be called before making any requests
+   */
+  async init(): Promise<void> {
+    if (!this.requestContext) {
+      this.requestContext = await request.newContext({
+        baseURL: this.baseUrl,
+        extraHTTPHeaders: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'application/json, text/plain, */*',
+          'Accept-Language': 'ru,ro;q=0.9,en;q=0.8',
+        },
+      });
+    }
+  }
+
+  /**
+   * Dispose Playwright request context
+   */
+  async dispose(): Promise<void> {
+    if (this.requestContext) {
+      await this.requestContext.dispose();
+      this.requestContext = null;
     }
   }
 
@@ -178,18 +210,28 @@ export abstract class BaseApiClient {
             await this.applyThrottling(attempt);
           }
 
-          // Step 4: Build request with cookies
-          const requestInit = this.buildRequest(method, body, headers);
+          // Step 4: Build headers with cookies
+          const finalHeaders = {
+            Accept: 'application/json',
+            'Accept-Language': 'ru,ro;q=0.9,en;q=0.8',
+            'Cache-Control': 'no-cache',
+            ...headers,
+          };
+
+          // Apply session cookies
+          this.session.applyCookies(finalHeaders);
 
           // Log request
           if (this.verbose) {
             console.log(`🌐 ${method} ${endpoint} (attempt ${attempt})`);
           }
 
-          // Step 5: Execute with timeout
-          const response = await this.executeWithTimeout(
+          // Step 5: Execute with Playwright request context
+          const response = await this.executeRequest(
+            method,
             fullUrl,
-            requestInit,
+            body,
+            finalHeaders,
             timeout
           );
 
@@ -349,7 +391,90 @@ export abstract class BaseApiClient {
   }
 
   /**
-   * Execute fetch with timeout
+   * Execute request with Playwright's APIRequestContext
+   */
+  private async executeRequest(
+    method: string,
+    url: string,
+    body: unknown,
+    headers: Record<string, string>,
+    timeout: number
+  ): Promise<Response> {
+    if (!this.requestContext) {
+      throw new Error('Request context not initialized. Call init() first.');
+    }
+
+    const options: any = {
+      headers,
+      timeout,
+    };
+
+    if (body !== undefined) {
+      options.data = body;
+    }
+
+    let playwrightResponse;
+
+    switch (method) {
+      case 'GET':
+        playwrightResponse = await this.requestContext.get(url, options);
+        break;
+      case 'POST':
+        playwrightResponse = await this.requestContext.post(url, options);
+        break;
+      case 'PUT':
+        playwrightResponse = await this.requestContext.put(url, options);
+        break;
+      case 'DELETE':
+        playwrightResponse = await this.requestContext.delete(url, options);
+        break;
+      case 'PATCH':
+        playwrightResponse = await this.requestContext.patch(url, options);
+        break;
+      default:
+        throw new Error(`Unsupported HTTP method: ${method}`);
+    }
+
+    // Convert Playwright's APIResponse to standard Response-like object
+    return this.toStandardResponse(playwrightResponse);
+  }
+
+  /**
+   * Convert Playwright's APIResponse to standard Response-like object
+   */
+  private toStandardResponse(playwrightResponse: any): Response {
+    const responseHeaders = new Headers();
+    const headers = playwrightResponse.headers();
+    
+    for (const [key, value] of Object.entries(headers)) {
+      // Skip Set-Cookie headers - they cause issues with Headers API
+      // Cookies are already managed by Playwright's request context
+      if (key.toLowerCase() === 'set-cookie') {
+        continue;
+      }
+      
+      try {
+        responseHeaders.set(key, String(value));
+      } catch (e) {
+        // Some headers may have invalid formats, skip them
+        if (this.verbose) {
+          console.log(`⚠️ Skipping invalid header: ${key}`);
+        }
+      }
+    }
+
+    return {
+      ok: playwrightResponse.ok(),
+      status: playwrightResponse.status(),
+      statusText: playwrightResponse.statusText(),
+      headers: responseHeaders,
+      json: async () => playwrightResponse.json(),
+      text: async () => playwrightResponse.text(),
+    } as Response;
+  }
+
+  /**
+   * Execute fetch with timeout (legacy fallback)
    */
   private async executeWithTimeout(
     url: string,
@@ -365,7 +490,7 @@ export abstract class BaseApiClient {
         signal: controller.signal,
       });
       return response;
-    } finally {
+    } finally{
       clearTimeout(timeoutId);
     }
   }
@@ -397,6 +522,9 @@ export abstract class BaseApiClient {
 
     // Return text as-is for non-JSON responses
     const text = await response.text();
+    
+    // Save for debugging
+    this.lastResponseText = text;
     
     // Log if we got HTML when we might have expected JSON
     if (text.includes('<!DOCTYPE') || text.includes('<html')) {

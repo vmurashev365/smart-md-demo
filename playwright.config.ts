@@ -11,7 +11,8 @@ dotenv.config();
  * proper rate limiting across all tests.
  */
 function getWorkerCount(): number {
-  const profile = process.env.API_PROFILE?.toLowerCase();
+  // Default to 'stealth' if not set, matching profiles.ts
+  const profile = process.env.API_PROFILE?.toLowerCase() || 'stealth';
   
   // CI always uses 1 worker
   if (process.env.CI) {

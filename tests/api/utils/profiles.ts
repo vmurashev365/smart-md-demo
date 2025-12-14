@@ -167,12 +167,12 @@ export function getProfile(name: string): ProfileConfig {
 /**
  * Get current profile from environment variable
  *
- * Reads API_PROFILE env var, defaults to 'normal' if not set.
+ * Reads API_PROFILE env var, defaults to 'stealth' if not set.
  *
  * @returns Current profile configuration
  */
 export function getCurrentProfile(): ProfileConfig {
-  const profileName = process.env.API_PROFILE || 'normal';
+  const profileName = process.env.API_PROFILE || 'stealth';
   return getProfile(profileName);
 }
 

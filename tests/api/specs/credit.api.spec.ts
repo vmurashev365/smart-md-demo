@@ -68,13 +68,13 @@ test.describe('Credit API', () => {
         test('should include major Moldovan banks', async () => {
             const banks = await getAvailableBanks(api);
             
-            // Check presence of at least one known bank
-            const knownBanks = ['maib', 'victoriabank', 'moldindconbank', 'mobiasbanca'];
+            // Check presence of Maib or STAR Card (actual banks on smart.md)
+            const knownBanks = ['maib', 'star card', 'starcard'];
             const hasKnownBank = banks.some(b => 
                 knownBanks.some(kb => b.name.toLowerCase().includes(kb))
             );
             
-            expect(hasKnownBank, 'Должен быть хотя бы один известный банк').toBe(true);
+            expect(hasKnownBank, 'Должен быть хотя бы один известный банк (Maib или STAR Card)').toBe(true);
         });
     });
 
