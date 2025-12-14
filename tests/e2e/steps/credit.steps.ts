@@ -223,7 +223,7 @@ Then('I should see available payment terms', async function (this: CustomWorld) 
 
 Then('the add to cart button should still be visible', async function (this: CustomWorld) {
   // Use getByRole for language-agnostic button detection
-  // Romanian: "Adaugă în coș", Russian: "Добавить в корзину"
+  // Romanian: "Adaugă în coș", Russian: "Add to cart"
   const addToCartButton = this.page.getByRole('button', { 
     name: /adaugă în coș|добавить в корзину|add to cart/i 
   }).first();

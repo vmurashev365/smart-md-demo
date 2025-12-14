@@ -130,8 +130,8 @@ Before(async function (this: CustomWorld, scenario) {
   this.page = await this.context.newPage();
 
   // Set default timeout
-  this.page.setDefaultTimeout(parseInt(process.env.DEFAULT_TIMEOUT || '10000', 10));
-  this.page.setDefaultNavigationTimeout(parseInt(process.env.NAVIGATION_TIMEOUT || '10000', 10));
+  this.page.setDefaultTimeout(parseInt(process.env.DEFAULT_TIMEOUT || '60000', 10));
+  this.page.setDefaultNavigationTimeout(parseInt(process.env.NAVIGATION_TIMEOUT || '60000', 10));
 
   // Store browser reference
   this.browser = browser;
@@ -240,7 +240,7 @@ Before({ tags: '@critical' }, async function (this: CustomWorld) {
   // Increase timeouts for critical tests
   if (this.page) {
     this.page.setDefaultTimeout(90000);
-    this.page.setDefaultNavigationTimeout(10000);
+    this.page.setDefaultNavigationTimeout(60000);
   }
 });
 

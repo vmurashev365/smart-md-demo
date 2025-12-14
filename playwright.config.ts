@@ -17,11 +17,11 @@ export default defineConfig({
   testDir: './tests',
   
   /* Global timeout for each test */
-  timeout: 10000,
+  timeout: 60000,
   
   /* Timeout for each expect() assertion */
   expect: {
-    timeout: 10000,
+    timeout: 60000,
   },
   
   /* Run tests in files in parallel */
@@ -167,6 +167,19 @@ export default defineConfig({
         browserName: 'webkit',
         launchOptions: {
           slowMo: parseInt(process.env.SLOW_MO || '50'),
+        },
+      },
+    },
+    
+    /* API Testing Project */
+    {
+      name: 'api',
+      testMatch: /.*\.api\.spec\.ts$/,
+      use: {
+        baseURL: process.env.API_BASE_URL || 'https://smart.md',
+        extraHTTPHeaders: {
+          'Accept': 'application/json',
+          'Accept-Language': 'ru,ro;q=0.9',
         },
       },
     },

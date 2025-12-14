@@ -46,7 +46,7 @@ export function parsePrice(priceString: string): number {
     .replace(/MDL/gi, '')
     .replace(/€/g, '')
     .replace(/\$/g, '')
-    .replace(/^от\s*/gi, '')  // "от 5 999"
+    .replace(/^от\s*/gi, '')  // "from 5 999"
     .replace(/^from\s*/gi, '')
     .replace(/^de la\s*/gi, '')
     .trim();
