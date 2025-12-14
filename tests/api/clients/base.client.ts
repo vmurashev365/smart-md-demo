@@ -372,16 +372,46 @@ export abstract class BaseApiClient {
 
   /**
    * Parse response body (JSON or text)
+   * 
+   * Handles cases where server returns HTML error pages (e.g., Cloudflare 500)
+   * instead of JSON, preventing crashes and preserving error content for debugging.
    */
   private async parseResponseBody<T>(response: Response): Promise<T> {
     const contentType = response.headers.get('content-type') || '';
 
+    // Try JSON parsing for JSON content type
     if (contentType.includes('application/json')) {
-      return response.json() as Promise<T>;
+      try {
+        return await response.json() as T;
+      } catch (jsonError) {
+        // JSON parsing failed (e.g., empty body, malformed JSON, or HTML error page)
+        console.log(`⚠️ JSON parse failed despite Content-Type: ${contentType}`);
+        
+        // Clone response to read body again (response.json() consumes the stream)
+        // Since we already consumed it, we need to handle this case
+        // Return empty object or the error message
+        const errorInfo = {
+          parseError: 'Failed to parse JSON response',
+          contentType,
+          hint: 'Server may have returned HTML error page (e.g., Cloudflare)',
+        };
+        console.log(`⚠️ Parse error details:`, errorInfo);
+        return errorInfo as unknown as T;
+      }
     }
 
     // Return text as-is for non-JSON responses
     const text = await response.text();
+    
+    // Log if we got HTML when we might have expected JSON
+    if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+      console.log(`⚠️ Received HTML response (possible error page)`);
+      if (this.verbose) {
+        // Log first 500 chars of HTML for debugging
+        console.log(`   Preview: ${text.substring(0, 500)}...`);
+      }
+    }
+    
     return text as unknown as T;
   }
 

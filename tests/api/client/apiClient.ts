@@ -1,288 +1,332 @@
 /**
- * API Client - centralized client for HTTP requests
- * 
- * Encapsulates:
- * - Base URL
- * - Headers (including localization)
- * - Error handling
- * - Typed responses
- * - Human-like behavior (optional)
+ * API Client - Refactored to use BaseApiClient throttling system
+ *
+ * This client extends BaseApiClient to leverage:
+ * - Profile-based throttling (stealth, normal, fast, burst)
+ * - Session/cookie management
+ * - Rate limit tracking and reporting
+ * - Exponential backoff on errors
+ *
+ * @module apiClient
  */
 
-import { APIRequestContext, request } from '@playwright/test';
-import {
-    beforeAction,
-    throttleRequest,
-    addJitter,
-    getRealisticHeaders,
-    getRandomUserAgent,
-    configureHumanBehavior,
-    getHumanBehaviorConfig,
-    type ActionType,
-    type HumanBehaviorConfig
-} from '../utils/human-like';
+import { BaseApiClient, ApiResponse as BaseApiResponse } from '../clients/base.client';
+import { getCurrentProfile } from '../utils/profiles';
 
-export interface ApiClientConfig {
-    baseURL: string;
-    language?: 'ru' | 'ro';
-    extraHeaders?: Record<string, string>;
-    /** Enable human-like behavior (delays, realistic headers) */
-    humanLike?: boolean;
-    /** Human-like behavior speed multiplier */
-    humanSpeed?: number;
+/**
+ * Legacy response interface (maintained for backward compatibility)
+ */
+export interface ApiResponse<T = unknown> {
+  status: number;
+  statusText: string;
+  data: T;
+  headers: Record<string, string>;
 }
 
-export interface ApiResponse<T = unknown> {
-    status: number;
-    statusText: string;
-    data: T;
-    headers: Record<string, string>;
+/**
+ * Legacy config interface (maintained for backward compatibility)
+ */
+export interface ApiClientConfig {
+  baseURL: string;
+  language?: 'ru' | 'ro';
+  extraHeaders?: Record<string, string>;
+  /** @deprecated Human-like behavior is now controlled by API_PROFILE */
+  humanLike?: boolean;
+  /** @deprecated Speed is now controlled by profile settings */
+  humanSpeed?: number;
+}
+
+/**
+ * Action types for backward compatibility
+ * @deprecated Use profile-based throttling instead
+ */
+export type ActionType = 'click' | 'type' | 'scroll' | 'navigate' | 'wait';
+
+/**
+ * Human behavior config for backward compatibility
+ * @deprecated Use getCurrentProfile() instead
+ */
+export interface HumanBehaviorConfig {
+  enabled: boolean;
+  speedMultiplier: number;
 }
 
 /**
  * Typed API client for Smart.md
+ *
+ * Extends BaseApiClient to use the new throttling system while
+ * maintaining backward compatibility with existing tests.
+ *
+ * NOTE: This class overrides get/post/put/delete methods to provide
+ * backward-compatible signatures with legacy ApiResponse format.
+ *
+ * @example
+ * const client = new ApiClient({ language: 'ru' });
+ * const response = await client.get<Product[]>('/api/products');
  */
-export class ApiClient {
-    private context: APIRequestContext | null = null;
-    private config: ApiClientConfig;
-    private userAgent: string;
+export class ApiClient extends BaseApiClient {
+  private language: 'ru' | 'ro';
+  private extraHeaders: Record<string, string>;
 
-    constructor(config: Partial<ApiClientConfig> = {}) {
-        this.config = {
-            baseURL: config.baseURL || 'https://www.smart.md',
-            language: config.language || 'ru',
-            extraHeaders: config.extraHeaders || {},
-            humanLike: config.humanLike ?? (process.env.HUMAN_BEHAVIOR !== 'false'),
-            humanSpeed: config.humanSpeed ?? parseFloat(process.env.HUMAN_SPEED || '1.0')
-        };
-        
-        // Set consistent User-Agent for session
-        this.userAgent = getRandomUserAgent();
-        
-        // Configure human-like behavior
-        if (this.config.humanLike) {
-            configureHumanBehavior({
-                enabled: true,
-                speedMultiplier: this.config.humanSpeed || 1.0
-            });
-        }
+  constructor(config: Partial<ApiClientConfig> = {}) {
+    // Initialize BaseApiClient with base URL
+    super(config.baseURL || process.env.API_BASE_URL || 'https://www.smart.md');
+
+    this.language = config.language || 'ru';
+    this.extraHeaders = config.extraHeaders || {};
+
+    // Log deprecation warning if old config options are used
+    if (config.humanLike !== undefined || config.humanSpeed !== undefined) {
+      console.log(
+        '⚠️ ApiClient: humanLike/humanSpeed options are deprecated. ' +
+          'Use API_PROFILE environment variable instead.'
+      );
+      console.log(`   Current profile: ${getCurrentProfile().name}`);
+    }
+  }
+
+  /**
+   * Initialize client (no-op for backward compatibility)
+   *
+   * BaseApiClient doesn't require initialization, but this method
+   * is kept for backward compatibility with existing code.
+   *
+   * @deprecated No longer needed - client is ready to use immediately
+   */
+  async init(): Promise<void> {
+    // No-op: BaseApiClient doesn't need initialization
+    // Kept for backward compatibility
+  }
+
+  /**
+   * Dispose client (no-op for backward compatibility)
+   *
+   * @deprecated No longer needed
+   */
+  async dispose(): Promise<void> {
+    // No-op: BaseApiClient uses fetch, no context to dispose
+  }
+
+  /**
+   * GET request with legacy response format
+   *
+   * Overrides BaseApiClient.get() to provide backward-compatible signature.
+   *
+   * @param endpoint - API endpoint
+   * @param options - Request options (params, actionType)
+   * @returns Response in legacy format
+   */
+  // @ts-expect-error - Intentionally different signature for backward compatibility
+  async get<T = unknown>(
+    endpoint: string,
+    options: { params?: Record<string, string>; actionType?: ActionType } = {}
+  ): Promise<ApiResponse<T>> {
+    // Build URL with query params
+    let url = endpoint;
+    if (options.params) {
+      const searchParams = new URLSearchParams(options.params);
+      url = `${endpoint}?${searchParams.toString()}`;
     }
 
-    /**
-     * Initialize Playwright API context
-     */
-    async init(): Promise<void> {
-        const headers = this.config.humanLike 
-            ? {
-                ...getRealisticHeaders(this.config.language),
-                'User-Agent': this.userAgent,
-                ...this.config.extraHeaders
-              }
-            : {
-                'Accept': 'application/json',
-                'Accept-Language': this.config.language === 'ro' ? 'ro-RO,ro' : 'ru-RU,ru',
-                ...this.config.extraHeaders
-              };
+    // Use BaseApiClient's request method with proper headers
+    const response = await this.request<T>({
+      method: 'GET',
+      endpoint: url,
+      headers: this.buildHeaders(),
+    });
 
-        this.context = await request.newContext({
-            baseURL: this.config.baseURL,
-            extraHTTPHeaders: headers
-        });
-    }
+    // Convert to legacy format
+    return this.toLegacyResponse(response);
+  }
 
-    /**
-     * Закрытие контекста
-     */
-    async dispose(): Promise<void> {
-        if (this.context) {
-            await this.context.dispose();
-            this.context = null;
-        }
-    }
+  /**
+   * POST request with legacy response format
+   *
+   * Overrides BaseApiClient.post() to provide backward-compatible signature.
+   *
+   * @param endpoint - API endpoint
+   * @param data - Request body
+   * @param _options - Request options (kept for backward compatibility)
+   * @returns Response in legacy format
+   */
+  // @ts-expect-error - Intentionally different signature for backward compatibility
+  async post<T = unknown>(
+    endpoint: string,
+    data?: unknown,
+    _options: { actionType?: ActionType } = {}
+  ): Promise<ApiResponse<T>> {
+    const response = await this.request<T>({
+      method: 'POST',
+      endpoint,
+      body: data,
+      headers: this.buildHeaders(),
+    });
+    return this.toLegacyResponse(response);
+  }
 
-    /**
-     * GET запрос
-     */
-    async get<T = unknown>(
-        endpoint: string, 
-        options: { params?: Record<string, string>; actionType?: ActionType } = {}
-    ): Promise<ApiResponse<T>> {
-        this.ensureInitialized();
-        
-        // Human-like behavior
-        if (this.config.humanLike) {
-            await throttleRequest();
-            await addJitter();
-            if (options.actionType) {
-                await beforeAction(options.actionType);
-            }
-        }
-        
-        let url = endpoint;
-        if (options.params) {
-            const searchParams = new URLSearchParams(options.params);
-            url = `${endpoint}?${searchParams.toString()}`;
-        }
+  /**
+   * PUT request with legacy response format
+   *
+   * Overrides BaseApiClient.put() to provide backward-compatible signature.
+   *
+   * @param endpoint - API endpoint
+   * @param data - Request body
+   * @param _options - Request options (kept for backward compatibility)
+   * @returns Response in legacy format
+   */
+  // @ts-expect-error - Intentionally different signature for backward compatibility
+  async put<T = unknown>(
+    endpoint: string,
+    data?: unknown,
+    _options: { actionType?: ActionType } = {}
+  ): Promise<ApiResponse<T>> {
+    const response = await this.request<T>({
+      method: 'PUT',
+      endpoint,
+      body: data,
+      headers: this.buildHeaders(),
+    });
+    return this.toLegacyResponse(response);
+  }
 
-        const response = await this.context!.get(url);
-        return this.parseResponse<T>(response);
-    }
+  /**
+   * DELETE request with legacy response format
+   *
+   * Overrides BaseApiClient.delete() to provide backward-compatible signature.
+   *
+   * @param endpoint - API endpoint
+   * @param _options - Request options (kept for backward compatibility)
+   * @returns Response in legacy format
+   */
+  // @ts-expect-error - Intentionally different signature for backward compatibility
+  async delete<T = unknown>(
+    endpoint: string,
+    _options: { actionType?: ActionType } = {}
+  ): Promise<ApiResponse<T>> {
+    const response = await this.request<T>({
+      method: 'DELETE',
+      endpoint,
+      headers: this.buildHeaders(),
+    });
+    return this.toLegacyResponse(response);
+  }
 
-    /**
-     * POST запрос
-     */
-    async post<T = unknown>(
-        endpoint: string,
-        data?: unknown,
-        options: { actionType?: ActionType } = {}
-    ): Promise<ApiResponse<T>> {
-        this.ensureInitialized();
-        
-        // Human-like behavior
-        if (this.config.humanLike) {
-            await throttleRequest();
-            await addJitter();
-            if (options.actionType) {
-                await beforeAction(options.actionType);
-            }
-        }
-        
-        const response = await this.context!.post(endpoint, {
-            data: data
-        });
-        return this.parseResponse<T>(response);
-    }
+  /**
+   * Change language for subsequent requests
+   *
+   * @param language - 'ru' or 'ro'
+   */
+  async setLanguage(language: 'ru' | 'ro'): Promise<void> {
+    this.language = language;
+  }
 
-    /**
-     * PUT запрос
-     */
-    async put<T = unknown>(
-        endpoint: string,
-        data?: unknown,
-        options: { actionType?: ActionType } = {}
-    ): Promise<ApiResponse<T>> {
-        this.ensureInitialized();
-        
-        // Human-like behavior
-        if (this.config.humanLike) {
-            await throttleRequest();
-            await addJitter();
-            if (options.actionType) {
-                await beforeAction(options.actionType);
-            }
-        }
-        
-        const response = await this.context!.put(endpoint, {
-            data: data
-        });
-        return this.parseResponse<T>(response);
-    }
+  /**
+   * Get current language
+   */
+  getLanguage(): 'ru' | 'ro' {
+    return this.language;
+  }
 
-    /**
-     * DELETE запрос
-     */
-    async delete<T = unknown>(
-        endpoint: string,
-        options: { actionType?: ActionType } = {}
-    ): Promise<ApiResponse<T>> {
-        this.ensureInitialized();
-        
-        // Human-like behavior
-        if (this.config.humanLike) {
-            await throttleRequest();
-            await addJitter();
-            if (options.actionType) {
-                await beforeAction(options.actionType);
-            }
-        }
-        
-        const response = await this.context!.delete(endpoint);
-        return this.parseResponse<T>(response);
-    }
+  /**
+   * Enable/disable human-like behavior
+   *
+   * @deprecated Use API_PROFILE environment variable instead
+   */
+  setHumanLike(_enabled: boolean, _speed?: number): void {
+    console.log(
+      '⚠️ setHumanLike() is deprecated. Use API_PROFILE environment variable instead.'
+    );
+    console.log(`   Available profiles: stealth, normal, fast, burst`);
+  }
 
-    /**
-     * Изменить язык для последующих запросов
-     */
-    async setLanguage(language: 'ru' | 'ro'): Promise<void> {
-        this.config.language = language;
-        // Re-initialize context with new language
-        await this.dispose();
-        await this.init();
-    }
+  /**
+   * Check if human-like behavior is enabled
+   *
+   * @deprecated Check getCurrentProfile() instead
+   */
+  isHumanLikeEnabled(): boolean {
+    const profile = getCurrentProfile();
+    // Consider 'stealth' and 'normal' as human-like
+    return profile.name === 'stealth' || profile.name === 'normal';
+  }
 
-    /**
-     * Получить текущий язык
-     */
-    getLanguage(): 'ru' | 'ro' {
-        return this.config.language || 'ru';
-    }
+  /**
+   * Get human-like behavior configuration
+   *
+   * @deprecated Use getCurrentProfile() instead
+   */
+  getHumanLikeConfig(): HumanBehaviorConfig {
+    const profile = getCurrentProfile();
+    return {
+      enabled: profile.name !== 'burst',
+      speedMultiplier: profile.requestDelay.max / 1000, // Convert to approx multiplier
+    };
+  }
 
-    /**
-     * Enable/disable human-like behavior
-     */
-    setHumanLike(enabled: boolean, speed?: number): void {
-        this.config.humanLike = enabled;
-        if (speed !== undefined) {
-            this.config.humanSpeed = speed;
-        }
-        configureHumanBehavior({
-            enabled,
-            speedMultiplier: this.config.humanSpeed || 1.0
-        });
-    }
+  /**
+   * Build headers with language setting
+   */
+  private buildHeaders(): Record<string, string> {
+    return {
+      'Accept-Language':
+        this.language === 'ro' ? 'ro-RO,ro;q=0.9' : 'ru-RU,ru;q=0.9,ro;q=0.8',
+      ...this.extraHeaders,
+    };
+  }
 
-    /**
-     * Check if human-like behavior is enabled
-     */
-    isHumanLikeEnabled(): boolean {
-        return this.config.humanLike ?? false;
-    }
+  /**
+   * Convert BaseApiClient response to legacy format
+   */
+  private toLegacyResponse<T>(response: BaseApiResponse<T>): ApiResponse<T> {
+    // Convert Headers to plain object
+    const headers: Record<string, string> = {};
+    response.headers.forEach((value, key) => {
+      headers[key] = value;
+    });
 
-    /**
-     * Get human-like behavior configuration
-     */
-    getHumanLikeConfig(): HumanBehaviorConfig {
-        return getHumanBehaviorConfig();
-    }
+    return {
+      status: response.status,
+      statusText: this.getStatusText(response.status),
+      data: response.data,
+      headers,
+    };
+  }
 
-    /**
-     * Парсинг ответа
-     */
-    private async parseResponse<T>(response: Awaited<ReturnType<APIRequestContext['get']>>): Promise<ApiResponse<T>> {
-        let data: T;
-        
-        try {
-            data = await response.json() as T;
-        } catch {
-            // If not JSON, return text as unknown
-            data = await response.text() as unknown as T;
-        }
-
-        const headers: Record<string, string> = {};
-        for (const [key, value] of Object.entries(response.headers())) {
-            headers[key] = value;
-        }
-
-        return {
-            status: response.status(),
-            statusText: response.statusText(),
-            data,
-            headers
-        };
-    }
-
-    private ensureInitialized(): void {
-        if (!this.context) {
-            throw new Error('ApiClient not initialized. Call init() first.');
-        }
-    }
+  /**
+   * Get status text from status code
+   */
+  private getStatusText(status: number): string {
+    const statusTexts: Record<number, string> = {
+      200: 'OK',
+      201: 'Created',
+      204: 'No Content',
+      400: 'Bad Request',
+      401: 'Unauthorized',
+      403: 'Forbidden',
+      404: 'Not Found',
+      429: 'Too Many Requests',
+      500: 'Internal Server Error',
+      502: 'Bad Gateway',
+      503: 'Service Unavailable',
+    };
+    return statusTexts[status] || 'Unknown';
+  }
 }
 
 /**
- * Фабрика для создания клиента
+ * Factory for creating client (backward compatibility)
+ *
+ * @deprecated Simply use `new ApiClient(config)` - init() is no longer needed
  */
-export async function createApiClient(config?: Partial<ApiClientConfig>): Promise<ApiClient> {
-    const client = new ApiClient(config);
-    await client.init();
-    return client;
+export async function createApiClient(
+  config?: Partial<ApiClientConfig>
+): Promise<ApiClient> {
+  const client = new ApiClient(config);
+  // init() is now a no-op, but we call it for compatibility
+  await client.init();
+  return client;
 }
+
+// Re-export ApiError from base client for convenience
+export { ApiError } from '../clients/base.client';
+export type { BaseApiResponse };

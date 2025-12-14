@@ -4,6 +4,38 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 /**
+ * Determine worker count based on API_PROFILE
+ * 
+ * Throttling logic (semaphores) only works within a single process.
+ * For 'stealth' and 'normal' profiles, we must limit workers to ensure
+ * proper rate limiting across all tests.
+ */
+function getWorkerCount(): number {
+  const profile = process.env.API_PROFILE?.toLowerCase();
+  
+  // CI always uses 1 worker
+  if (process.env.CI) {
+    return 1;
+  }
+  
+  // Stealth profile: strictly sequential
+  if (profile === 'stealth') {
+    console.log('🎭 Stealth profile: forcing 1 worker for proper throttling');
+    return 1;
+  }
+  
+  // Normal profile: limited parallelism
+  if (profile === 'normal') {
+    console.log('🚶 Normal profile: limiting to 1 worker for throttling');
+    return 1;
+  }
+  
+  // Fast/burst profiles: allow parallelism
+  // Default: 4 workers
+  return 4;
+}
+
+/**
  * Playwright Configuration for Smart.md E2E Testing
  * 
  * Features:
@@ -12,6 +44,7 @@ dotenv.config();
  * - Human-like behavior settings
  * - Anti-detection configurations
  * - Allure reporting integration
+ * - API throttling with profile-based worker limits
  */
 export default defineConfig({
   testDir: './tests',
@@ -33,8 +66,8 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 1,
   
-  /* Opt out of parallel tests on CI */
-  workers: process.env.CI ? 1 : 4,
+  /* Worker count based on API_PROFILE for proper throttling */
+  workers: getWorkerCount(),
   
   /* Reporter configuration */
   reporter: [
