@@ -24,6 +24,45 @@ Given('I am on the Smart.md homepage', async function (this: CustomWorld) {
   await humanWaitForContent(this.page, 1500);
 });
 
+/**
+ * Dynamic Data Navigation Step
+ * Navigate to product page from Dynamic Data Injection hook
+ * Requires @needs_product tag on scenario
+ */
+Given('I am on the product page of the found product', async function (this: CustomWorld) {
+  // Lazy import to avoid circular dependency
+  const { ProductDetailPage } = await import('../../shared/page-objects/product-detail.page');
+  
+  // 1. Validate that @needs_product hook ran and found product
+  if (!this.testData?.targetProduct) {
+    throw new Error(
+      '💥 CRITICAL: Dynamic product data not found!\n' +
+      '   Ensure scenario is tagged with @needs_product'
+    );
+  }
+
+  const product = this.testData.targetProduct;
+  console.log(`🚀 Navigating to dynamic product: ${product.title}`);
+
+  // 2. Navigate to product URL (session already warmed by hook)
+  await this.page.goto(product.url);
+  
+  // 3. Validate we're on the correct page
+  const productPage = new ProductDetailPage(this.page);
+  await productPage.waitForPageLoad();
+  
+  // 4. Verify page loaded successfully
+  const currentTitle = await productPage.getTitle();
+  const currentPrice = await productPage.getPrice();
+  
+  console.log(`📄 Product Page: ${currentTitle}`);
+  console.log(`💰 Price: ${currentPrice} MDL`);
+  
+  // 5. Sanity check: price should be valid
+  expect(currentPrice).toBeGreaterThan(0);
+  expect(currentTitle.length).toBeGreaterThan(0);
+});
+
 Given('I am on the Smart.md homepage in {string}', async function (
   this: CustomWorld,
   language: 'RO' | 'RU'

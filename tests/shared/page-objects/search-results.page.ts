@@ -326,6 +326,80 @@ export class SearchResultsPage extends BasePage {
     const newCount = await this.getProductCount();
     return newCount - initialCount;
   }
+
+  /**
+   * Get all visible products with data (for Dynamic Data Injection)
+   * @param limit - Maximum number of products to scan (default: 20)
+   * @returns Array of product data
+   */
+  async getAllVisibleProducts(limit: number = 20): Promise<Array<ProductCardData & { brand?: string }>> {
+    await this.waitForResults();
+    
+    // Check if page is still alive
+    if (this.page.isClosed()) {
+      console.error('❌ Page is closed, cannot extract products');
+      return [];
+    }
+    
+    const count = Math.min(await this.productCards.count(), limit);
+    const products: Array<ProductCardData & { brand?: string }> = [];
+    
+    for (let i = 0; i < count; i++) {
+      try {
+        // Double-check page is still open
+        if (this.page.isClosed()) {
+          console.warn(`⚠️ Page closed at product ${i}, returning ${products.length} products`);
+          break;
+        }
+        
+        const card = this.getProductCard(i);
+        
+        // Get title with shorter timeout
+        const titleEl = card.locator(joinSelectors(SELECTORS.searchResults.productTitle));
+        const title = (await titleEl.textContent({ timeout: 5000 }))?.trim() || '';
+        
+        // Get price
+        const priceEl = card.locator(joinSelectors(SELECTORS.searchResults.productPrice));
+        const priceText = (await priceEl.textContent({ timeout: 5000 })) || '0';
+        const price = parsePrice(priceText);
+        
+        // Get URL
+        const linkEl = card.locator('a[href*="/"]').first();
+        const url = (await linkEl.getAttribute('href', { timeout: 5000 })) || '';
+        
+        // Extract brand from title (usually first word)
+        const brand = title.split(' ')[0];
+        
+        products.push({
+          title,
+          price,
+          url,
+          index: i,
+          brand,
+        });
+      } catch (error) {
+        // Don't spam console if page is closed
+        if (!this.page.isClosed()) {
+          console.warn(`⚠️ Failed to extract data from product card ${i}`);
+        }
+        // Continue to next product instead of breaking
+        continue;
+      }
+    }
+    
+    return products;
+  }
+
+  /**
+   * Click product by index (for Dynamic Data Injection)
+   * @param index - Zero-based product index
+   */
+  async clickProductByIndex(index: number): Promise<void> {
+    const card = this.getProductCard(index);
+    const linkEl = card.locator('a[href*="/"]').first();
+    await humanClick(linkEl);
+    await randomDelay(500, 1000);
+  }
 }
 
 export default SearchResultsPage;

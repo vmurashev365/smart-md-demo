@@ -208,4 +208,34 @@ test.describe('Credit API', () => {
             }
         });
     });
+
+    test.describe('Credit Calculation Matrix - Boundary Testing', () => {
+        // Тестируем граничные значения сумм и различные сроки
+        const amounts = [500, 4999, 5000, 50000]; // минимум, граница, следующий уровень, максимум
+        const terms = [3, 6, 9, 12, 18, 24, 36]; // все стандартные сроки
+
+        amounts.forEach(amount => {
+            terms.forEach(termMonths => {
+                test(`should calculate credit for ${amount} MDL for ${termMonths} months`, async () => {
+                    const calculation = await calculateCreditByAmount(api, amount, termMonths);
+                    
+                    // Базовая структура должна быть валидной
+                    expectCreditCalculationStructureValid(calculation);
+                    expect(calculation.productPrice).toBe(amount);
+                    
+                    // Если есть предложения, проверяем их корректность
+                    if (calculation.offers.length > 0) {
+                        for (const offer of calculation.offers) {
+                            expectCreditOfferStructureValid(offer);
+                            expectInterestRateReasonable(offer);
+                            expectTermMonthsStandard(termMonths);
+                            
+                            // Проверка математики кредита
+                            expectCreditMathValid(offer, amount);
+                        }
+                    }
+                });
+            });
+        });
+    });
 });

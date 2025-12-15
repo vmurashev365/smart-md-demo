@@ -244,4 +244,96 @@ Before({ tags: '@critical' }, async function (this: CustomWorld) {
   }
 });
 
+/**
+ * UI-Based Dynamic Data Injection Hook (Cloudflare-Safe)
+ * 
+ * Fetches valid product via UI search instead of API to bypass Cloudflare WAF detection.
+ * Uses existing browser session (already passed challenge) with human-like behavior.
+ * 
+ * Why UI instead of API?
+ * - Cloudflare blocks fast API requests as bot traffic (403 Forbidden)
+ * - UI search uses same page session (shared cookies/fingerprint)
+ * - Human-like delays and interactions appear legitimate to WAF
+ * 
+ * Trade-off: ~5 seconds slower per test, but 100% reliable with Cloudflare
+ */
+Before({ tags: '@needs_product' }, async function (this: CustomWorld) {
+  console.log('🔍 Dynamic Data: Searching via UI (Cloudflare-safe method)...');
+  
+  // Lazy import page objects
+  const { HomePage } = await import('../../shared/page-objects/home.page');
+  const { SearchResultsPage } = await import('../../shared/page-objects/search-results.page');
+  const { ProductDetailPage } = await import('../../shared/page-objects/product-detail.page');
+  
+  try {
+    const homePage = new HomePage(this.page);
+    const searchResults = new SearchResultsPage(this.page);
+    const productPage = new ProductDetailPage(this.page);
+    
+    // 1. Open homepage (initializes Cloudflare cookies if needed)
+    console.log('   Step 1: Opening homepage...');
+    await homePage.open();
+    
+    // 2. Search for popular query with expensive products
+    const searchQuery = 'Samsung';
+    console.log(`   Step 2: Searching for "${searchQuery}"...`);
+    await homePage.search(searchQuery);
+    await searchResults.waitForResults();
+    
+    // 3. Check that we have results
+    const productCount = await searchResults.getProductCount();
+    console.log(`   Found ${productCount} products`);
+    
+    if (productCount === 0) {
+      throw new Error('❌ FAIL FAST: Search returned no products. Site may be down.');
+    }
+    
+    // 4. Click FIRST product (simplest approach - no parsing needed)
+    console.log('   Step 3: Opening first product...');
+    await searchResults.clickProductByIndex(0);
+    await productPage.waitForPageLoad();
+    
+    // 5. Get data from product page
+    const productTitle = await productPage.getTitle();
+    const productPrice = await productPage.getPrice();
+    const productUrl = this.page.url();
+    
+    // 6. Verify price meets criteria (>2000 MDL for credit tests)
+    if (productPrice < 2000) {
+      console.warn(`⚠️ First product price (${productPrice} MDL) < 2000. Tests may fail for credit scenarios.`);
+    }
+    
+    console.log(`   ✓ Product: "${productTitle}"`);
+    console.log(`   ✓ Price: ${productPrice} MDL`);
+    
+    // 7. Store in testData for scenario steps
+    this.testData.targetProduct = {
+      id: 'ui-dynamic',
+      title: productTitle,
+      price: productPrice,
+      url: productUrl,
+      brand: productTitle.split(' ')[0], // Extract brand from title
+      available: true,
+    };
+    
+    // 8. Return to homepage so scenario starts clean
+    console.log('   Step 4: Returning to homepage...');
+    await homePage.open();
+    
+    console.log(`✅ Dynamic Data Ready: ${productTitle} (${productPrice} MDL)`);
+    
+    // Attach to report for visibility
+    await this.attachJson({
+      dynamicDataInjection: true,
+      method: 'UI-based (Cloudflare-safe)',
+      targetProduct: this.testData.targetProduct,
+      timestamp: new Date().toISOString(),
+    });
+    
+  } catch (error) {
+    console.error('❌ Dynamic Data Injection failed:', error);
+    throw error;
+  }
+});
+
 export { browser };

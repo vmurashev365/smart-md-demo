@@ -104,6 +104,34 @@ module.exports = {
     paths: ['@rerun.txt'],
   },
   
+  // STEALTH MODE: Production-safe, full Cloudflare bypass (slow but safe)
+  stealth: {
+    ...common,
+    tags: '@smoke',
+    timeout: 20 * 1000,
+    worldParameters: {
+      ...common.worldParameters,
+      headless: false,        // Real browser UI
+      slowMo: 50,             // 50ms delay per action
+      humanLikeMode: true,    // Full random delays (100-500ms)
+    },
+  },
+
+  // FAST MODE: Local development only (NO Cloudflare protection!)
+  // ⚠️ WARNING: Will trigger bot detection on production smart.md
+  // Use only for: localhost, staging, or non-Cloudflare environments
+  fast: {
+    ...common,
+    tags: '@smoke',
+    timeout: 10 * 1000,
+    worldParameters: {
+      ...common.worldParameters,
+      headless: true,         // Headless for speed
+      slowMo: 0,              // No slowMo
+      humanLikeMode: false,   // No random delays
+    },
+  },
+
   // CI configuration
   ci: {
     ...common,
@@ -117,6 +145,7 @@ module.exports = {
       ...common.worldParameters,
       headless: true,
       slowMo: 0,
+      humanLikeMode: false,
     },
   },
 };

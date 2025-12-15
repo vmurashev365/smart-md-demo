@@ -112,6 +112,34 @@ test.describe('Catalog API', () => {
         });
     });
 
+    test.describe('Category Products - Data Driven (All Categories)', () => {
+        const categories = ['smartphone', 'laptopuri', 'televizoare', 'frigidere', 'masini-de-spalat', 'console', 'smart-watch'];
+
+        categories.forEach(categorySlug => {
+            test(`${categorySlug} - should have valid products`, async () => {
+                const page = await getCategoryProducts(api, categorySlug);
+                
+                expectCatalogPageStructureValid(page);
+                expectCatalogNotEmpty(page);
+            });
+
+            test(`${categorySlug} - should support filtering`, async () => {
+                const filters = await getCategoryFilters(api, categorySlug);
+                
+                expectFiltersAvailable(filters);
+            });
+
+            test(`${categorySlug} - should support sorting`, async () => {
+                const sorted = await getCategoryProducts(api, categorySlug, { 
+                    sort: 'price_asc',
+                    limit: 10 
+                });
+                
+                expectProductsSortedByPriceAsc(sorted.products);
+            });
+        });
+    });
+
     test.describe('Products', () => {
         test.skip('should return product details by ID', async () => {
             // SKIP: parseProductDetails() not fully implemented yet

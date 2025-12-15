@@ -21,11 +21,13 @@ import { Page, Locator } from '@playwright/test';
  * @returns Promise that resolves after random delay
  */
 export async function randomDelay(min: number = 100, max: number = 500): Promise<void> {
-  // Skip delays for mobile tests (no bot protection on mobile)
-  if (process.env.DISABLE_HUMAN_DELAYS === 'true') {
+  // FAST MODE: Skip all delays (local development only!)
+  // ⚠️ WARNING: Will trigger Cloudflare bot detection on production
+  if (process.env.HUMAN_LIKE_MODE === 'false' || process.env.DISABLE_HUMAN_DELAYS === 'true') {
     return Promise.resolve();
   }
-  
+
+  // STEALTH MODE (default): Full random delay for Cloudflare bypass
   const delay = Math.floor(Math.random() * (max - min + 1)) + min;
   await new Promise(resolve => setTimeout(resolve, delay));
 }

@@ -15,7 +15,7 @@ import { CartPage } from '../../shared/page-objects/cart.page';
 import { SELECTORS } from '../../shared/config/selectors';
 import { humanWaitForContent, randomDelay } from '../../shared/utils/human-like';
 import { waitForSearchResults } from '../../shared/utils/wait-utils';
-import { pricesEqual, calculateTotal } from '../../shared/utils/price-utils';
+import { calculateTotal } from '../../shared/utils/price-utils';
 import { joinSelectors } from '../../shared/utils/locator-helper';
 
 // ==================== Cart Cleanup ====================
@@ -73,6 +73,31 @@ When('I search for {string}', async function (this: CustomWorld, query: string) 
   const homePage = new HomePage(this.page);
   await homePage.search(query);
   await waitForSearchResults(this.page);
+});
+
+/**
+ * Dynamic step: Search for a valid product from testData
+ * Requires @needs_product tag to populate testData.targetProduct
+ */
+When('I search for a valid product', async function (this: CustomWorld) {
+  // Validate that testData.targetProduct exists
+  if (!this.testData.targetProduct) {
+    throw new Error(
+      '❌ testData.targetProduct is not initialized.\n' +
+      '   Make sure your scenario is tagged with @needs_product to enable Dynamic Data Injection.'
+    );
+  }
+
+  const productTitle = this.testData.targetProduct.title;
+  
+  this.logMessage(`🔍 Searching for dynamically selected product: "${productTitle}"`);
+  
+  // Use existing home page search functionality
+  const homePage = new HomePage(this.page);
+  await homePage.search(productTitle);
+  await waitForSearchResults(this.page);
+  
+  this.logMessage(`✅ Search completed for: "${productTitle}"`);
 });
 
 Then('the search results should contain at least {int} products', async function (

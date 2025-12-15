@@ -13,6 +13,21 @@ import { Page, BrowserContext, Browser } from '@playwright/test';
 export type StoredValue = string | number | boolean | object | null;
 
 /**
+ * Test Data interface for dynamic data injection
+ */
+export interface TestData {
+  targetProduct?: {
+    id: string | number;
+    title: string;
+    price: number;
+    url: string;
+    brand?: string;
+    available: boolean;
+  };
+  [key: string]: any; // Allow additional dynamic properties
+}
+
+/**
  * Custom World Options
  */
 export interface CustomWorldOptions extends IWorldOptions {
@@ -48,6 +63,11 @@ export class CustomWorld extends World {
    * Storage for values between steps
    */
   private storedValues: Map<string, StoredValue> = new Map();
+
+  /**
+   * Dynamic test data (injected by hooks)
+   */
+  testData: TestData = {};
 
   /**
    * Current device emulation (if any)

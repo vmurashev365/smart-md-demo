@@ -40,3 +40,17 @@ Feature: Credit Calculator
     When I close the credit calculator modal
     Then I should be back on the product page
     And the "Adauga in cos" button should be visible
+
+  @needs_product @credit-dynamic @smoke @critical
+  Scenario: Verify credit calculation for a dynamically found product
+    Given I am on the product page of the found product
+    When I click the buy on credit button
+    Then the credit calculator should be visible
+    And I should see the monthly payment amount
+    
+    When I select "13 luni" payment term
+    Then the monthly payment should be approximately "product_price / 13"
+    
+    When I select "24 luni" payment term
+    Then the monthly payment should be recalculated
+    And the monthly payment should be approximately "product_price / 24"
