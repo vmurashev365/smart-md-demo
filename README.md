@@ -2,6 +2,12 @@
 
 Enterprise-grade Test Automation Framework for Smart.md - Moldova's largest electronics e-commerce aggregator.
 
+> **Disclaimer**
+> 
+> This project is an independent technical demonstration of a QA automation framework.
+> It is not affiliated with, endorsed by, or commissioned by smart.md.
+> All tests interact only with publicly accessible website functionality.
+
 ## 📊 Test Pyramid (ISTQB-compliant)
 
 ```text
@@ -224,7 +230,7 @@ smart-md-demo/
 │       │       └── mobile-menu.component.ts
 │       └── utils/              # Utility functions
 │           ├── human-like.ts   # Human behavior simulation
-│           ├── browser-fingerprint.ts
+│           ├── browser-profile.ts
 │           ├── locator-helper.ts
 │           ├── wait-utils.ts
 │           ├── price-utils.ts
@@ -767,16 +773,20 @@ Artifacts are automatically uploaded to:
 
 ## �📄 License
 
-MIT License - see LICENSE file for details.
+**Proprietary Commercial License**
+
+Copyright © Victor Murashev. All rights reserved.
+
+Usage permitted only under a commercial agreement. Redistribution and resale are prohibited.
+
+See [LICENSE](LICENSE) for full terms.
 
 ## 👥 Contributing
 
-1. Fork the repository
-2. Create feature branch
-3. Follow coding standards
-4. Add tests for new features
-5. Submit pull request
+This is a proprietary project. Contributions are not accepted at this time.
+
+For commercial inquiries or custom implementations, please contact the author.
 
 ---
 
-Made with ❤️ for Smart.md testing
+Professional QA Automation Framework by Victor Murashev

@@ -16,7 +16,7 @@ import {
   getAntiDetectionScript,
   getAntiDetectionArgs,
   getDeviceFingerprint,
-} from '../../shared/utils/browser-fingerprint';
+} from '../../shared/utils/browser-profile';
 
 // Set default timeout for all steps
 setDefaultTimeout(60 * 1000); // 60 seconds

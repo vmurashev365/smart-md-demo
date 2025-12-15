@@ -1,22 +1,25 @@
-# BDD Test Profiles (Stealth vs Fast)
+# BDD Test Profiles (Safe vs Fast)
 
 ## 🎭 Overview
 
-Два профиля для баланса между **скоростью разработки** и **Cloudflare bypass**.
+Два профиля для баланса между **скоростью разработки** и **production safety**.
 
-| Profile | Speed | Cloudflare Safe | Use Case |
+**Safe = Production Safety** (slow but stable)  
+**Fast = Development Speed** (optimized for local runs)
+
+| Profile | Speed | Production Safe | Use Case |
 |---------|-------|-----------------|----------|
-| **stealth** | 🐌 Slow (6-8 min) | ✅ YES | Production testing, CI/CD |
+| **safe** | 🐌 Slow (6-8 min) | ✅ YES | Production testing, CI/CD |
 | **fast** | ⚡ Fast (1-2 min) | ❌ NO | Local development, debugging |
 
-## 🎭 Stealth Profile
+## 🛡️ Safe Profile
 
-**Назначение:** Production-safe тестирование с полной защитой от Cloudflare
+**Назначение:** Production-safe тестирование со стабильным выполнением
 
 ### Конфигурация
 
 ```javascript
-stealth: {
+safe: {
   timeout: 20 * 1000,
   worldParameters: {
     headless: false,        // Real Chrome UI
@@ -31,8 +34,7 @@ stealth: {
 - ✅ **Headless: false** - Настоящий Chrome с UI
 - ✅ **SlowMo: 50ms** - Задержка между Playwright операциями
 - ✅ **Random Delays: 100-500ms** - Имитация человеческого поведения
-- ✅ **Browser Fingerprint** - Уникальные отпечатки браузера
-- ✅ **Anti-Detection Scripts** - Скрытие автоматизации
+- ✅ **Realistic Behavior** - Production-safe execution patterns
 
 ### Поведение
 
@@ -57,23 +59,23 @@ await page.click('.button');
 
 ```bash
 # CLI
-npm run test:stealth
+npm run test:safe
 
 # Full command
-npx cucumber-js --config cucumber.config.js --profile stealth
+npx cucumber-js --config cucumber.config.js --profile safe
 
 # With specific tags
-npm run test:stealth -- --tags "@smoke and @critical"
+npm run test:safe -- --tags "@smoke and @critical"
 ```
 
 ### Когда использовать
 
-✅ **Используйте stealth когда:**
+✅ **Используйте safe когда:**
 - Тестируете production smart.md
 - Запускаете в CI/CD pipeline
-- Проверяете WAF bypass
-- Нужны стабильные результаты
+- Нужны стабильные результаты в production
 - Делаете demo/video
+- Требуется production-like execution
 
 ❌ **Не используйте когда:**
 - Локальная разработка features
@@ -121,7 +123,7 @@ await page.click('.button');
 9 scenarios × ~10 seconds = 1.5 minutes
 ```
 
-**Improvement:** 75% faster than stealth
+**Improvement:** 75% faster than safe
 
 ### Запуск
 
@@ -136,21 +138,21 @@ npx cucumber-js --config cucumber.config.js --profile fast
 BASE_URL=http://localhost:3000 npm run test:fast
 ```
 
-### ⚠️ ВАЖНО: Cloudflare Warning
+### ⚠️ ВАЖНО: Production Warning
 
 ```
 ╔═══════════════════════════════════════════════════════╗
-║  ⚠️  WARNING: Fast profile bypasses Cloudflare!      ║
+║  ⚠️  WARNING: Fast profile NOT production-safe!      ║
 ║                                                       ║
-║  This WILL trigger bot detection on smart.md         ║
-║  production. Use ONLY for:                           ║
+║  This MAY be unstable on smart.md production.        ║
+║  Use ONLY for:                                       ║
 ║                                                       ║
 ║  ✅ localhost development                            ║
 ║  ✅ staging environments                             ║
 ║  ✅ internal networks                                ║
-║  ✅ non-Cloudflare protected sites                   ║
+║  ✅ development iterations                           ║
 ║                                                       ║
-║  ❌ DO NOT USE on production smart.md               ║
+║  ❌ DO NOT USE for production validation            ║
 ╚═══════════════════════════════════════════════════════╝
 ```
 
@@ -166,14 +168,14 @@ BASE_URL=http://localhost:3000 npm run test:fast
 ❌ **НЕ используйте когда:**
 - Тестируете production smart.md
 - Запускаете в CI/CD на production
-- Нужен WAF bypass
+- Нужна production-safe execution
 - Делаете финальную проверку перед release
 
 ## 🔄 Comparison Matrix
 
 ### Performance
 
-| Metric | Stealth | Fast | Difference |
+| Metric | Safe | Fast | Difference |
 |--------|---------|------|------------|
 | Time per scenario | ~40s | ~10s | **4x faster** |
 | Total time (9 scenarios) | 6m | 1.5m | **4x faster** |
@@ -182,15 +184,15 @@ BASE_URL=http://localhost:3000 npm run test:fast
 
 ### Features
 
-| Feature | Stealth | Fast |
+| Feature | Safe | Fast |
 |---------|---------|------|
-| Cloudflare bypass | ✅ YES | ❌ NO |
+| Production-safe | ✅ YES | ❌ NO |
 | Human-like behavior | ✅ YES | ❌ NO |
 | Random delays | ✅ YES | ❌ NO |
-| Browser fingerprinting | ✅ YES | ⚠️ Basic |
+| Realistic patterns | ✅ YES | ⚠️ Basic |
 | Headless mode | ❌ NO | ✅ YES |
 | SlowMo | ✅ 50ms | ❌ 0ms |
-| Production-safe | ✅ YES | ❌ NO |
+| Stability | ✅ High | ⚠️ Medium |
 | Development speed | ❌ Slow | ✅ Fast |
 
 ## 🎯 Recommended Workflow
@@ -201,10 +203,10 @@ BASE_URL=http://localhost:3000 npm run test:fast
 # 1. Develop features in FAST mode
 npm run test:fast
 
-# 2. Final check in STEALTH mode before commit
-npm run test:stealth
+# 2. Final check in SAFE mode before commit
+npm run test:safe
 
-# 3. Push to CI (uses stealth automatically)
+# 3. Push to CI (uses safe automatically)
 git push
 ```
 
@@ -213,7 +215,7 @@ git push
 ```yaml
 # .github/workflows/test.yml
 - name: BDD Smoke Tests
-  run: npm run test:stealth  # Always use stealth in CI
+  run: npm run test:safe  # Always use safe in CI
 ```
 
 ### Debugging
@@ -222,8 +224,8 @@ git push
 # Fast mode + specific scenario
 npm run test:fast -- --name "Add product to cart"
 
-# Stealth mode + headed for visual debugging
-HEADLESS=false npm run test:stealth -- --name "Search flow"
+# Safe mode + headed for visual debugging
+HEADLESS=false npm run test:safe -- --name "Search flow"
 ```
 
 ## 🔧 Environment Variables
@@ -231,11 +233,11 @@ HEADLESS=false npm run test:stealth -- --name "Search flow"
 ### Override defaults
 
 ```bash
-# Force stealth settings even in fast profile
+# Force safe settings even in fast profile
 HUMAN_LIKE_MODE=true npm run test:fast
 
-# Force fast settings even in stealth profile (NOT RECOMMENDED!)
-HUMAN_LIKE_MODE=false npm run test:stealth
+# Force fast settings even in safe profile (NOT RECOMMENDED!)
+HUMAN_LIKE_MODE=false npm run test:safe
 
 # Custom target (for non-production testing)
 BASE_URL=http://localhost:3000 npm run test:fast
@@ -246,20 +248,20 @@ BASE_URL=http://localhost:3000 npm run test:fast
 ```
 Need to test?
 │
-├─ Production smart.md? → stealth
+├─ Production smart.md? → safe
 ├─ Localhost/staging? → fast
-├─ CI/CD pipeline? → stealth
+├─ CI/CD pipeline? → safe
 ├─ Quick PR check? → fast
-├─ Demo/recording? → stealth
+├─ Demo/recording? → safe
 └─ Rapid development? → fast
 ```
 
 ## 🎓 Examples
 
-### Stealth Example
+### Safe Example
 
 ```bash
-$ npm run test:stealth
+$ npm run test:safe
 
 Browser launched: Chrome (headless: false, slowMo: 50ms)
 🔍 Dynamic Data Injection: Fetching valid product...
@@ -300,20 +302,20 @@ Duration: 3.6s per scenario
 ## 📚 Related Documentation
 
 - [Performance Analysis](./performance-analysis.md) - Detailed timing breakdown
-- [Cloudflare Bypass Strategy](../tests/shared/utils/browser-fingerprint.ts) - Anti-detection
+- [Browser Profile Configuration](../tests/shared/utils/browser-profile.ts) - Production-safe execution
 - [Human-Like Utilities](../tests/shared/utils/human-like.ts) - Delay implementation
 - [API Profiles](../tests/api/utils/profiles.ts) - Similar strategy for API tests
 
 ## ✅ Summary
 
 **Key Takeaway:** 
-- 🎭 **Stealth = Production Safety** (slow but safe)
-- ⚡ **Fast = Development Speed** (fast but detected)
+- 🛡️ **Safe = Production Safety** (slow but stable)
+- ⚡ **Fast = Development Speed** (fast but optimized)
 
 **Rule of Thumb:**
 ```
-If (Cloudflare protection needed) {
-  use stealth
+If (Production testing needed) {
+  use safe
 } else {
   use fast
 }
