@@ -163,14 +163,21 @@ npm run test:smoke      # Smoke tests only (critical paths, ~4 min)
 
 Optimal test execution strategy for different stages:
 
-| Stage | Command | What Runs | Duration | Purpose |
-|-------|---------|-----------|----------|----------|
-| **PR / Commit** | `npm run test:smoke` | Critical E2E paths + API smoke (30 tests) | ~4 min | Fast feedback on breaking changes |
-| **Nightly / Merge** | `npm run test:api` | All 151 API tests (catalog, search, credit, errors) | ~2 min | Full business logic validation |
-| **Pre-Release** | `npm test` | Complete suite (151 API + 40 E2E) | ~4 min | Comprehensive regression |
-| **Mobile-Specific** | `npm run test:mobile:all` | iOS + Android responsive tests | ~2 min | Device compatibility check |
+| Stage | Command | What Runs | Profile | Duration | Purpose |
+|-------|---------|-----------|---------|----------|----------|
+| **PR / Commit** | `npm run test:smoke` | Critical E2E paths + API smoke (30 tests) | fast/normal | ~4 min | Fast feedback on breaking changes |
+| **Nightly / Merge** | `npm run test:api:fast` | All 151 API tests (parallel) | fast | ~2-3 min | Full business logic validation |
+| **Pre-Production** | `npm run test:api:normal` | All 151 API tests (throttled) | normal | ~5-7 min | Production-like testing with rate limiting |
+| **Pre-Release** | `npm test` | Complete suite (151 API + 40 E2E) | default | ~6-9 min | Comprehensive regression |
+| **Mobile-Specific** | `npm run test:mobile:all` | iOS + Android responsive tests | default | ~3-4 min | Device compatibility check |
+| **CI Pipeline** | `npm run test:api:ci` | All API tests (maximum speed) | burst | ~1-2 min | CI/CD pipeline execution |
+| **Production Staging** | `npm run test:stealth` | Smoke E2E with Cloudflare bypass | stealth | ~5-8 min | Testing against protected production |
 
-**Pro Tip:** Run `npm run test:api` first (fast feedback), then `npm run test:e2e` if APIs pass.
+**Pro Tips:**
+- **Local dev:** Use `npm run test:api:fast` for quick feedback (~2 min)
+- **Before deploy:** Use `npm run test:api:normal` for production-like validation (~5 min)
+- **CI/CD:** Use `npm run test:api:ci` for maximum speed (~1 min)
+- **Production staging:** Use `npm run test:stealth` for Cloudflare-protected environments
 
 ## 📁 Project Structure
 
@@ -347,6 +354,32 @@ Combinatorial testing of amounts × terms:
 | `npx playwright test tests/api/specs/errors.api.spec.ts --project=api` | Error handling tests (22 tests) |
 | `npx playwright test tests/api/specs/catalog.api.spec.ts --project=api --grep "Pairwise"` | Pairwise filter tests only (12 tests) |
 
+#### API Execution Profiles
+
+API tests support different execution profiles for various environments:
+
+| Profile | Command | Workers | Request Delay | Parallel Requests | Use Case | Duration |
+|---------|---------|---------|---------------|-------------------|----------|----------|
+| **Normal** | `npm run test:api:normal` | 2 | 500-1500ms | 2 | Staging/Production-like testing | ~5-7 min |
+| **Fast** | `npm run test:api:fast` | 4 | 0-100ms | 10 | Local development | ~2-3 min |
+| **CI/Burst** | `npm run test:api:ci` | 4 | 0ms | 20 | CI Pipeline | ~1-2 min |
+
+**Key differences:**
+- **Normal**: Production-safe with rate limiting, session gaps (2-5s), progressive backoff on errors
+- **Fast**: Minimal delays for quick feedback during development
+- **CI/Burst**: Maximum speed, zero delays, can use mocks
+
+```bash
+# For staging/production testing (safe, throttled)
+npm run test:api:normal
+
+# For local development (fast feedback)
+npm run test:api:fast
+
+# For CI pipeline (maximum speed)
+npm run test:api:ci
+```
+
 ### E2E Tests (Cucumber)
 
 | Command | Description |
@@ -358,6 +391,41 @@ Combinatorial testing of amounts × terms:
 | `npm run test:headed` | Run with visible browser |
 | `npm run test:parallel` | Run in parallel (4 workers) |
 | `npm run test:e2e` | Run all E2E tests directly |
+
+#### E2E Execution Profiles
+
+E2E tests support different execution modes for bot detection avoidance and speed:
+
+| Profile | Command | slowMo | humanLikeMode | Headless | Use Case | Duration |
+|---------|---------|--------|---------------|----------|----------|----------|
+| **Stealth** | `npm run test:stealth` | 50ms | ✅ Yes | ❌ No | Production, Cloudflare bypass | ~5-8 min |
+| **Fast** | `npm run test:fast` | 0ms | ❌ No | ✅ Yes | Local development only | ~2-3 min |
+| **Default** | `npm run test:e2e` | 50ms | ✅ Yes | from .env | Standard testing | ~4-5 min |
+
+**Key differences:**
+- **Stealth**: Full human-like behavior with random delays (100-500ms), hover before click, realistic typing. Bypasses Cloudflare/Turnstile protection.
+- **Fast**: No delays, direct clicks, instant typing. ⚠️ **WARNING**: Will trigger bot detection on production!
+- **Default**: Balanced mode with moderate human-like behavior.
+
+```bash
+# For production/staging (Cloudflare-safe)
+npm run test:stealth
+
+# For local development (fast, no delays)
+npm run test:fast
+
+# Standard run
+npm run test:e2e
+```
+
+**Environment variables:**
+```bash
+# Disable human-like delays (equivalent to fast mode)
+HUMAN_LIKE_MODE=false npm run test:e2e
+
+# Enable stealth features
+HUMAN_LIKE_MODE=true HEADLESS=false npm run test:e2e
+```
 
 ### Reporting
 

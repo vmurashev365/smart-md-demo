@@ -163,14 +163,21 @@ npm run test:smoke      # Doar teste smoke (căi critice, ~4 min)
 
 Strategia optimă de execuție teste pentru diferite etape:
 
-| Etapă | Comandă | Ce Rulează | Durată | Scop |
-|-------|---------|------------|--------|------|
-| **PR / Commit** | `npm run test:smoke` | Căi critice E2E + API smoke (30 teste) | ~4 min | Feedback rapid pentru schimbări critice |
-| **Nightly / Merge** | `npm run test:api` | Toate cele 151 teste API (catalog, căutare, credit, erori) | ~2 min | Validare completă logică business |
-| **Pre-Release** | `npm test` | Suite completă (151 API + 40 E2E) | ~4 min | Regresie comprehensivă |
-| **Specific Mobil** | `npm run test:mobile:all` | Teste responsive iOS + Android | ~2 min | Verificare compatibilitate dispozitive |
+| Etapă | Comandă | Ce Rulează | Profil | Durată | Scop |
+|-------|---------|------------|--------|--------|------|
+| **PR / Commit** | `npm run test:smoke` | Căi critice E2E + API smoke (30 teste) | fast/normal | ~4 min | Feedback rapid pentru schimbări critice |
+| **Nightly / Merge** | `npm run test:api:fast` | Toate cele 151 teste API (paralel) | fast | ~2-3 min | Validare completă logică business |
+| **Pre-Producție** | `npm run test:api:normal` | Toate cele 151 teste API (limitat) | normal | ~5-7 min | Testare similară producției cu limitare rată |
+| **Pre-Release** | `npm test` | Suite completă (151 API + 40 E2E) | default | ~6-9 min | Regresie comprehensivă |
+| **Specific Mobil** | `npm run test:mobile:all` | Teste responsive iOS + Android | default | ~3-4 min | Verificare compatibilitate dispozitive |
+| **Pipeline CI** | `npm run test:api:ci` | Toate testele API (viteză maximă) | burst | ~1-2 min | Execuție pipeline CI/CD |
+| **Staging Producție** | `npm run test:stealth` | Smoke E2E cu bypass Cloudflare | stealth | ~5-8 min | Testare împotriva producției protejate |
 
-**Sfat Pro:** Rulează `npm run test:api` primul (feedback rapid), apoi `npm run test:e2e` dacă API-urile trec.
+**Sfaturi Pro:**
+- **Dezvoltare locală:** Folosește `npm run test:api:fast` pentru feedback rapid (~2 min)
+- **Înainte de deploy:** Folosește `npm run test:api:normal` pentru validare similară producției (~5 min)
+- **CI/CD:** Folosește `npm run test:api:ci` pentru viteză maximă (~1 min)
+- **Staging producție:** Folosește `npm run test:stealth` pentru medii protejate Cloudflare
 
 ## 📁 Structura Proiectului
 
@@ -347,6 +354,32 @@ Testare combinatorială sume × termeni:
 | `npx playwright test tests/api/specs/errors.api.spec.ts --project=api` | Teste gestionare erori (22 teste) |
 | `npx playwright test tests/api/specs/catalog.api.spec.ts --project=api --grep "Pairwise"` | Doar teste filtru Pairwise (12 teste) |
 
+#### Profile Execuție API
+
+Testele API suportă diferite profile de execuție pentru diverse medii:
+
+| Profil | Comandă | Workers | Întârziere Request | Cereri Paralele | Caz de Utilizare | Durată |
+|---------|---------|---------|---------------------|-----------------|------------------|----------|
+| **Normal** | `npm run test:api:normal` | 2 | 500-1500ms | 2 | Testare similară Staging/Producție | ~5-7 min |
+| **Fast** | `npm run test:api:fast` | 4 | 0-100ms | 10 | Dezvoltare locală | ~2-3 min |
+| **CI/Burst** | `npm run test:api:ci` | 4 | 0ms | 20 | Pipeline CI | ~1-2 min |
+
+**Diferențe cheie:**
+- **Normal**: Sigur pentru producție cu limitare rată, pauze sesiune (2-5s), backoff progresiv la erori
+- **Fast**: Întârzieri minime pentru feedback rapid în timpul dezvoltării
+- **CI/Burst**: Viteză maximă, zero întârzieri, poate folosi mock-uri
+
+```bash
+# Pentru testare staging/producție (sigur, limitat)
+npm run test:api:normal
+
+# Pentru dezvoltare locală (feedback rapid)
+npm run test:api:fast
+
+# Pentru pipeline CI (viteză maximă)
+npm run test:api:ci
+```
+
 ### Teste E2E (Cucumber)
 
 | Comandă | Descriere |
@@ -358,6 +391,41 @@ Testare combinatorială sume × termeni:
 | `npm run test:headed` | Rulează cu browser vizibil |
 | `npm run test:parallel` | Rulează în paralel (4 workers) |
 | `npm run test:e2e` | Rulează toate testele E2E direct |
+
+#### Profile Execuție E2E
+
+Testele E2E suportă diferite moduri de execuție pentru evitarea detectării bot-urilor și viteză:
+
+| Profil | Comandă | slowMo | humanLikeMode | Headless | Caz de Utilizare | Durată |
+|---------|---------|--------|---------------|----------|------------------|----------|
+| **Stealth** | `npm run test:stealth` | 50ms | ✅ Da | ❌ Nu | Producție, bypass Cloudflare | ~5-8 min |
+| **Fast** | `npm run test:fast` | 0ms | ❌ Nu | ✅ Da | Doar dezvoltare locală | ~2-3 min |
+| **Default** | `npm run test:e2e` | 50ms | ✅ Da | din .env | Testare standard | ~4-5 min |
+
+**Diferențe cheie:**
+- **Stealth**: Comportament complet uman cu întârzieri aleatorii (100-500ms), hover înainte de clic, tastare realistă. Ocolește protecția Cloudflare/Turnstile.
+- **Fast**: Fără întârzieri, clicuri directe, tastare instantă. ⚠️ **ATENȚIE**: Va declanșa detectarea bot-urilor pe producție!
+- **Default**: Mod echilibrat cu comportament moderat uman.
+
+```bash
+# Pentru producție/staging (sigur pentru Cloudflare)
+npm run test:stealth
+
+# Pentru dezvoltare locală (rapid, fără întârzieri)
+npm run test:fast
+
+# Rulare standard
+npm run test:e2e
+```
+
+**Variabile de mediu:**
+```bash
+# Dezactivează întârzierile umane (echivalent cu modul fast)
+HUMAN_LIKE_MODE=false npm run test:e2e
+
+# Activează funcționalități stealth
+HUMAN_LIKE_MODE=true HEADLESS=false npm run test:e2e
+```
 
 ### Raportare
 
