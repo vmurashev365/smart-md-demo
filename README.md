@@ -147,7 +147,7 @@ npm run test:mobile:all
 npm run test:headed
 
 # Run single feature file
-npm run cucumber -- tests/e2e/features/shopping-flow.feature
+npx cucumber-js -- tests/e2e/features/shopping-flow.feature
 
 # === Full Test Suite ===
 # Run all tests (API + E2E)
@@ -156,7 +156,7 @@ npm test
 # === Quick Entry Points ===
 npm run test:api        # All API tests (151 tests, ~2 min)
 npm run test:e2e        # All E2E tests (40 scenarios, ~3 min)
-npm run test:smoke      # Smoke tests only (critical paths, ~1 min)
+npm run test:smoke      # Smoke tests only (critical paths, ~4 min)
 ```
 
 ### 📅 When to Run What
@@ -165,7 +165,7 @@ Optimal test execution strategy for different stages:
 
 | Stage | Command | What Runs | Duration | Purpose |
 |-------|---------|-----------|----------|----------|
-| **PR / Commit** | `npm run test:smoke` | Critical E2E paths + API smoke (30 tests) | ~1 min | Fast feedback on breaking changes |
+| **PR / Commit** | `npm run test:smoke` | Critical E2E paths + API smoke (30 tests) | ~4 min | Fast feedback on breaking changes |
 | **Nightly / Merge** | `npm run test:api` | All 151 API tests (catalog, search, credit, errors) | ~2 min | Full business logic validation |
 | **Pre-Release** | `npm test` | Complete suite (151 API + 40 E2E) | ~4 min | Comprehensive regression |
 | **Mobile-Specific** | `npm run test:mobile:all` | iOS + Android responsive tests | ~2 min | Device compatibility check |
@@ -357,7 +357,7 @@ Combinatorial testing of amounts × terms:
 | `npm run test:mobile` | Run mobile tests |
 | `npm run test:headed` | Run with visible browser |
 | `npm run test:parallel` | Run in parallel (4 workers) |
-| `npm run cucumber` | Run Cucumber directly |
+| `npm run test:e2e` | Run all E2E tests directly |
 
 ### Reporting
 
@@ -391,19 +391,19 @@ Tags define **exactly** what runs when. Use them to control scope and cost.
 ```bash
 # === CI/CD Contracts ===
 # PR: Only smoke tests (fast feedback)
-npm run cucumber -- --tags "@smoke"
+npx cucumber-js --config cucumber.config.js --tags "@smoke"
 
 # Nightly: Regression (full coverage)
-npm run cucumber -- --tags "@regression"
+npx cucumber-js --config cucumber.config.js --tags "@regression"
 
 # Pre-release: Critical paths only
-npm run cucumber -- --tags "@critical"
+npx cucumber-js --config cucumber.config.js --tags "@critical"
 
 # Multiple tags (AND)
-npm run cucumber -- --tags "@smoke and @shopping"
+npx cucumber-js --config cucumber.config.js --tags "@smoke and @shopping"
 
 # Exclude tag
-npm run cucumber -- --tags "not @mobile"
+npx cucumber-js --config cucumber.config.js --tags "not @mobile"
 ```
 
 ## �️ Test Data Management (Live Site Strategy)
@@ -627,16 +627,16 @@ PARALLEL_WORKERS=4
 
 ```bash
 # Default profile
-npm run cucumber
+npm run test:e2e
 
 # Smoke profile (critical scenarios only)
-npm run cucumber -- --profile smoke
+npm run test:smoke
 
 # Mobile profile
-npm run cucumber -- --profile mobile
+npm run test:mobile
 
 # CI profile (parallel + strict)
-npm run cucumber -- --profile ci
+npx cucumber-js --config cucumber.config.js --profile ci
 ```
 
 ## 🔧 Development
@@ -705,7 +705,7 @@ npm run test:headed
 
 ```bash
 # Run in CI mode locally
-npm run cucumber -- --profile ci
+npx cucumber-js --config cucumber.config.js --profile ci
 ```
 
 ### Debug Mode

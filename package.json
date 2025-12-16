@@ -4,8 +4,8 @@
   "description": "Enterprise Smoke Testing Framework for Smart.md - Moldova's largest electronics aggregator",
   "main": "index.js",
   "scripts": {
-    "test": "cucumber-js --config cucumber.config.js",
-    "test:smoke": "cucumber-js --config cucumber.config.js --profile smoke",
+    "test": "npm run test:api && npm run test:e2e",
+    "test:smoke": "npm run test:api:smoke && cucumber-js --config cucumber.config.js --profile smoke",
     "test:critical": "cucumber-js --config cucumber.config.js --profile critical",
     "test:mobile": "cucumber-js --config cucumber.config.js --profile mobile",
     "test:mobile:ios": "cucumber-js --config cucumber.config.js --profile mobile_ios",

@@ -147,7 +147,7 @@ npm run test:mobile:all
 npm run test:headed
 
 # Rulează un singur fișier feature
-npm run cucumber -- tests/e2e/features/shopping-flow.feature
+npx cucumber-js -- tests/e2e/features/shopping-flow.feature
 
 # === Suite Completă de Teste ===
 # Rulează toate testele (API + E2E)
@@ -156,7 +156,7 @@ npm test
 # === Puncte de Intrare Rapide ===
 npm run test:api        # Toate testele API (151 teste, ~2 min)
 npm run test:e2e        # Toate testele E2E (40 scenarii, ~3 min)
-npm run test:smoke      # Doar teste smoke (căi critice, ~1 min)
+npm run test:smoke      # Doar teste smoke (căi critice, ~4 min)
 ```
 
 ### 📅 Când să Rulezi Ce
@@ -165,7 +165,7 @@ Strategia optimă de execuție teste pentru diferite etape:
 
 | Etapă | Comandă | Ce Rulează | Durată | Scop |
 |-------|---------|------------|--------|------|
-| **PR / Commit** | `npm run test:smoke` | Căi critice E2E + API smoke (30 teste) | ~1 min | Feedback rapid pentru schimbări critice |
+| **PR / Commit** | `npm run test:smoke` | Căi critice E2E + API smoke (30 teste) | ~4 min | Feedback rapid pentru schimbări critice |
 | **Nightly / Merge** | `npm run test:api` | Toate cele 151 teste API (catalog, căutare, credit, erori) | ~2 min | Validare completă logică business |
 | **Pre-Release** | `npm test` | Suite completă (151 API + 40 E2E) | ~4 min | Regresie comprehensivă |
 | **Specific Mobil** | `npm run test:mobile:all` | Teste responsive iOS + Android | ~2 min | Verificare compatibilitate dispozitive |
@@ -357,7 +357,7 @@ Testare combinatorială sume × termeni:
 | `npm run test:mobile` | Rulează teste mobile |
 | `npm run test:headed` | Rulează cu browser vizibil |
 | `npm run test:parallel` | Rulează în paralel (4 workers) |
-| `npm run cucumber` | Rulează Cucumber direct |
+| `npm run test:e2e` | Rulează toate testele E2E direct |
 
 ### Raportare
 
@@ -391,19 +391,19 @@ Tag-urile definesc **exact** ce rulează când. Folosește-le pentru a controla 
 ```bash
 # === Contracte CI/CD ===
 # PR: Doar teste smoke (feedback rapid)
-npm run cucumber -- --tags "@smoke"
+npx cucumber-js --config cucumber.config.js --tags "@smoke"
 
 # Nightly: Regresie (acoperire completă)
-npm run cucumber -- --tags "@regression"
+npx cucumber-js --config cucumber.config.js --tags "@regression"
 
 # Pre-release: Doar căi critice
-npm run cucumber -- --tags "@critical"
+npx cucumber-js --config cucumber.config.js --tags "@critical"
 
 # Tag-uri multiple (ȘI)
-npm run cucumber -- --tags "@smoke and @shopping"
+npx cucumber-js --config cucumber.config.js --tags "@smoke and @shopping"
 
 # Exclude tag
-npm run cucumber -- --tags "not @mobile"
+npx cucumber-js --config cucumber.config.js --tags "not @mobile"
 ```
 
 ## 🗂️ Gestionarea Datelor de Test (Strategie Site Live)
@@ -627,16 +627,16 @@ PARALLEL_WORKERS=4
 
 ```bash
 # Profil implicit
-npm run cucumber
+npm run test:e2e
 
 # Profil smoke (doar scenarii critice)
-npm run cucumber -- --profile smoke
+npm run test:smoke
 
 # Profil mobil
-npm run cucumber -- --profile mobile
+npm run test:mobile
 
 # Profil CI (paralel + strict)
-npm run cucumber -- --profile ci
+npx cucumber-js --config cucumber.config.js --profile ci
 ```
 
 ## 🔧 Dezvoltare
@@ -705,7 +705,7 @@ npm run test:headed
 
 ```bash
 # Rulează în modul CI local
-npm run cucumber -- --profile ci
+npx cucumber-js --config cucumber.config.js --profile ci
 ```
 
 ### Mod Debug
