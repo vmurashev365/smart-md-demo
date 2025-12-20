@@ -37,6 +37,8 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"**/*.{ts,js,json,md}\"",
     "typecheck": "tsc --noEmit",
+    "compliance:smart": "cross-env COMPLIANCE_SITE=smart COMPLIANCE_SCREENSHOT_IDS=2.1 SLOW_MO=0 npx playwright test tests/compliance/runners/playwright/compliance.runner.spec.ts --config playwright.config.ts --project=chromium",
+    "compliance:report": "node tests/compliance/reporting/generate-html-report.cjs",
     "prepare": "husky install"
   },
   "keywords": [

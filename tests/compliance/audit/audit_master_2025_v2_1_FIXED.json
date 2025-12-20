@@ -1,0 +1,1179 @@
+{
+  "meta": {
+    "document_title": "E-COMMERCE COMPLIANCE MASTER-CHECKLIST Republica Moldova",
+    "source_file": "Ecommerce_Compliance_Checklist_Moldova_2025_v2_1_COLORED.docx",
+    "version": "2.1 — Decembrie 2025",
+    "generated_at": "2025-12-20",
+    "totals": {
+      "total_checks": 91,
+      "mandatory_checks": 82,
+      "best_practice_checks": 9
+    },
+    "notes": [
+      "Generated from the provided DOCX. Each requirement includes where_to_verify and scope (MANDATORY/BEST_PRACTICE)."
+    ]
+  },
+  "sections": {
+    "1_transparenta_si_identificare": {
+      "title": "1. TRANSPARENȚĂ ȘI IDENTIFICARE",
+      "requirements": {
+        "1.1": {
+          "desc": "Date de identificare vizibile (IDNO 13 cifre, Denumirea juridică completă, Forma juridică: SRL/SA)",
+          "where_to_verify": "Footer sau pagina Despre noi",
+          "law": "Legea nr. 284/2004, Art. 8 alin. (1) lit. a)",
+          "risk": "3.000 - 6.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "regex_search",
+            "pattern": "\\b\\d{13}\\b"
+          }
+        },
+        "1.2": {
+          "desc": "Adresa sediului social (Localitate, Stradă, Număr)",
+          "where_to_verify": "Footer sau Contact",
+          "law": "Legea nr. 284/2004, Art. 8 alin. (1) lit. b)",
+          "risk": "3.000 - 6.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "1.3": {
+          "desc": "Date de contact funcționale (E-mail valid, Telefon activ)",
+          "where_to_verify": "Footer și pagina Contact",
+          "law": "Legea nr. 284/2004, Art. 8 alin. (1) lit. c)",
+          "risk": "3.000 - 6.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "regex_search",
+            "pattern": "(@|\\+373|0\\d{8})"
+          }
+        },
+        "1.4": {
+          "desc": "Notificare în registrul comerțului electronic (Nr. înregistrare sau link)",
+          "where_to_verify": "Footer sau T&C",
+          "law": "Legea nr. 231/2024, Art. 12",
+          "risk": "5.000 - 10.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "link_presence"
+          }
+        },
+        "1.5": {
+          "desc": "Link activ către APCSP (apcsp.gov.md) - Autoritatea de soluționare litigii",
+          "where_to_verify": "Footer",
+          "law": "Legea nr. 105/2003, Art. 34; Directiva ODR",
+          "risk": "3.000 - 5.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "link_presence",
+            "target_url": "apcsp.gov"
+          }
+        },
+        "1.6": {
+          "desc": "Verificare domeniu (WHOIS transparență pentru încredere consumatori)",
+          "where_to_verify": "WHOIS public",
+          "law": "Recomandare best practice",
+          "risk": "Reputațional",
+          "severity": "SCĂZUT",
+          "scope": "BEST_PRACTICE",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Best practice / recommendation; manual review."
+          }
+        }
+      }
+    },
+    "2_politica_de_preturi_si_promotii": {
+      "title": "2. POLITICA DE PREȚURI ȘI PROMOȚII",
+      "requirements": {
+        "2.1": {
+          "desc": "Prețul afișat în MDL (lei moldovenești) - moneda națională obligatorie",
+          "where_to_verify": "Toate paginile cu prețuri",
+          "law": "Legea nr. 231/2024, Art. 15 alin. (1)",
+          "risk": "4.000 - 10.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "currency_check",
+            "expected": "MDL|lei"
+          }
+        },
+        "2.2": {
+          "desc": "Prețul include toate taxele (TVA, eco-taxă) sau sunt indicate separat clar",
+          "where_to_verify": "Pagina produs, Coș",
+          "law": "Legea nr. 105/2003, Art. 6 lit. d); Legea nr. 284/2004, Art. 9",
+          "risk": "5.000 - 12.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "2.3": {
+          "desc": "Prețul unitar (per kg/litru/m²) pentru produse vrac sau comparabile",
+          "where_to_verify": "Produse alimentare, materiale",
+          "law": "Directiva 98/6/CE (transpusă); HG nr. 547/2003",
+          "risk": "3.000 - 6.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "2.4": {
+          "desc": "La reduceri: afișarea prețului minim din ultimele 30 zile (Omnibus)",
+          "where_to_verify": "Produse cu reducere/promoție",
+          "law": "Directiva (UE) 2019/2161 (Omnibus), Art. 6a",
+          "risk": "10.000 - 20.000",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "2.5": {
+          "desc": "Eco-taxa (Taxa Verde) afișată pentru echipamente electronice",
+          "where_to_verify": "Produse electronice",
+          "law": "Legea nr. 209/2016 privind deșeurile, Art. 24",
+          "risk": "5.000 - 12.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "element_visibility"
+          }
+        },
+        "2.6": {
+          "desc": "Costurile de livrare afișate înainte de finalizarea comenzii",
+          "where_to_verify": "Coș, Checkout",
+          "law": "Legea nr. 284/2004, Art. 9 alin. (1) lit. e)",
+          "risk": "5.000 - 10.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "element_visibility"
+          }
+        },
+        "2.7": {
+          "desc": "Interzicerea recenziilor false (fake reviews) și manipularea evaluărilor",
+          "where_to_verify": "Pagini produse cu recenzii",
+          "law": "Directiva (UE) 2019/2161 (Omnibus); Legea nr. 105/2003",
+          "risk": "5.000 - 15.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        }
+      }
+    },
+    "3_procesul_de_comanda": {
+      "title": "3. PROCESUL DE COMANDĂ",
+      "requirements": {
+        "3.1": {
+          "desc": "Butonul final: \"Comandă cu obligația de plată\" sau text echivalent clar",
+          "where_to_verify": "Ultima etapă checkout",
+          "law": "Legea nr. 284/2004, Art. 10 alin. (3); Directiva 2011/83/UE, Art. 8(2)",
+          "risk": "7.000 - 15.000",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "button_text_exact",
+            "expected_text": [
+              "Comandă cu obligația de plată",
+              "Plasează comanda și plătește",
+              "Finalizează comanda"
+            ]
+          }
+        },
+        "3.2": {
+          "desc": "Checkbox T&C NU este pre-bifat (consimțământ activ)",
+          "where_to_verify": "Checkout",
+          "law": "Legea nr. 105/2003, Art. 6; GDPR Art. 7",
+          "risk": "5.000 - 10.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "checkbox_state",
+            "expected_state": "unchecked"
+          }
+        },
+        "3.3": {
+          "desc": "Confirmare automată a comenzii trimisă clientului (e-mail/SMS)",
+          "where_to_verify": "După plasare comandă",
+          "law": "Legea nr. 284/2004, Art. 11 alin. (1)",
+          "risk": "3.000 - 7.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "regex_search",
+            "pattern": "(@|\\+373|0\\d{8})"
+          }
+        },
+        "3.4": {
+          "desc": "Termenul de livrare indicat (max. 30 zile dacă nu e specificat altfel)",
+          "where_to_verify": "T&C, Pagina produs",
+          "law": "Legea nr. 105/2003, Art. 22; Legea nr. 284/2004, Art. 14",
+          "risk": "5.000 - 10.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "3.5": {
+          "desc": "Rezumatul complet al comenzii înainte de confirmare (produse, cantități, prețuri)",
+          "where_to_verify": "Pagina finală checkout",
+          "law": "Directiva 2011/83/UE, Art. 8(1)",
+          "risk": "5.000 - 10.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "3.6": {
+          "desc": "Posibilitatea de a corecta erorile înainte de confirmare",
+          "where_to_verify": "Checkout",
+          "law": "Legea nr. 284/2004, Art. 10 alin. (2)",
+          "risk": "3.000 - 7.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "3.7": {
+          "desc": "Integrare cu sisteme de plată fără comisioane ascunse",
+          "where_to_verify": "Checkout, Pagina plată",
+          "law": "Legea nr. 105/2003, Art. 6 lit. d); Transparență consumator",
+          "risk": "3.000 - 8.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        }
+      }
+    },
+    "4_protectia_datelor_gdpr": {
+      "title": "4. PROTECȚIA DATELOR (GDPR)",
+      "requirements": {
+        "4.1": {
+          "desc": "Cookie Banner cu opțiuni: Acceptă / Respinge / Gestionează (toate funcționale)",
+          "where_to_verify": "Prima vizită pe site",
+          "law": "Legea nr. 195/2024, Art. 8; GDPR Art. 6-7",
+          "risk": "Până la 500.000*",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "cookie_banner_compliance"
+          }
+        },
+        "4.2": {
+          "desc": "Nicio urmărire (analytics, marketing) înainte de consimțământ",
+          "where_to_verify": "Verificare cookies înainte de Accept",
+          "law": "Legea nr. 195/2024, Art. 8 alin. (3); GDPR Art. 6(1)(a)",
+          "risk": "Până la 500.000*",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "network_sniffing"
+          }
+        },
+        "4.3": {
+          "desc": "Politica de Confidențialitate accesibilă (link activ în footer și checkout)",
+          "where_to_verify": "Footer, Checkout, Formulare",
+          "law": "Legea nr. 133/2011, Art. 12; GDPR Art. 13-14",
+          "risk": "Până la 250.000*",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "link_presence"
+          }
+        },
+        "4.4": {
+          "desc": "Checkbox consimțământ obligatoriu pentru formulare cu date personale",
+          "where_to_verify": "Toate formularele",
+          "law": "GDPR Art. 6(1)(a), Art. 7; Legea nr. 133/2011, Art. 5",
+          "risk": "15.000 - 22.500",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "checkbox_state",
+            "expected_state": "unchecked"
+          }
+        },
+        "4.5": {
+          "desc": "Checkbox consimțământ NU este pre-bifat",
+          "where_to_verify": "Toate formularele",
+          "law": "GDPR Art. 7 alin. (2); Directiva 2011/83/UE",
+          "risk": "15.000 - 22.500",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "checkbox_state",
+            "expected_state": "unchecked"
+          }
+        },
+        "4.6": {
+          "desc": "Informare despre drepturile persoanei vizate (acces, rectificare, ștergere)",
+          "where_to_verify": "Politica de Confidențialitate",
+          "law": "GDPR Art. 15-22; Legea nr. 133/2011, Art. 14-18",
+          "risk": "10.000 - 20.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "4.7": {
+          "desc": "Date de contact DPO sau responsabil protecția datelor (dacă e cazul)",
+          "where_to_verify": "Politica de Confidențialitate",
+          "law": "GDPR Art. 37-39",
+          "risk": "5.000 - 15.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "4.8": {
+          "desc": "Procedură de notificare data breach (72h către CNPD)",
+          "where_to_verify": "Plan intern + Politică",
+          "law": "GDPR Art. 33-34; Legea nr. 133/2011",
+          "risk": "Până la 500.000*",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "4.9": {
+          "desc": "DPIA (Data Protection Impact Assessment) pentru procesări high-risk",
+          "where_to_verify": "Documentație internă",
+          "law": "GDPR Art. 35",
+          "risk": "10.000 - 50.000*",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        }
+      }
+    },
+    "5_credite_de_consum": {
+      "title": "5. CREDITE DE CONSUM",
+      "requirements": {
+        "5.1": {
+          "desc": "DAE (Dobânda Anuală Efectivă / APR) afișată clar și vizibil",
+          "where_to_verify": "Calculator credit, Pagina produs",
+          "law": "Legea nr. 202/2013, Art. 6 alin. (1) lit. g); Directiva 2008/48/CE, Art. 4",
+          "risk": "10.000 - 25.000",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "element_visibility"
+          }
+        },
+        "5.2": {
+          "desc": "Suma totală de plată afișată (principal + dobândă + toate costurile)",
+          "where_to_verify": "Calculator credit",
+          "law": "Legea nr. 202/2013, Art. 6 alin. (1) lit. h); Directiva 2008/48/CE, Art. 5",
+          "risk": "10.000 - 25.000",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "element_visibility"
+          }
+        },
+        "5.3": {
+          "desc": "Costul creditului afișat separat (supraplata totală în MDL)",
+          "where_to_verify": "Calculator credit",
+          "law": "Legea nr. 202/2013, Art. 6 alin. (1) lit. i)",
+          "risk": "10.000 - 20.000",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "element_visibility"
+          }
+        },
+        "5.4": {
+          "desc": "Rata dobânzii nominale afișată (% anual)",
+          "where_to_verify": "Calculator credit",
+          "law": "Legea nr. 202/2013, Art. 6 alin. (1) lit. f)",
+          "risk": "5.000 - 10.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "element_visibility"
+          }
+        },
+        "5.5": {
+          "desc": "Asigurarea este OPȚIONALĂ (checkbox separat, nu pre-bifat)",
+          "where_to_verify": "Formular credit",
+          "law": "Legea nr. 105/2003, Art. 6; Legea nr. 202/2013, Art. 12",
+          "risk": "5.000 - 15.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "checkbox_state",
+            "expected_state": "unchecked"
+          }
+        },
+        "5.6": {
+          "desc": "Exemplu reprezentativ de credit (cu sumă, termen, DAE, rată)",
+          "where_to_verify": "Publicitate credit",
+          "law": "Directiva 2008/48/CE, Art. 4 alin. (2)",
+          "risk": "5.000 - 10.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "5.7": {
+          "desc": "Licență activă a creditorului (verificare BNM) și respectarea limitelor DAE",
+          "where_to_verify": "Documentație creditor + BNM",
+          "law": "Legea nr. 202/2013 (actualizări 2022)",
+          "risk": "10.000 - 30.000",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        }
+      }
+    },
+    "6_trade_in_buy_back": {
+      "title": "6. TRADE-IN / BUY-BACK",
+      "requirements": {
+        "6.1": {
+          "desc": "Parametrii evaluării vizibili în rezumatul final (stare, funcționalitate, accesorii)",
+          "where_to_verify": "Dialog final Trade-In",
+          "law": "Legea nr. 105/2003, Art. 6 lit. d) - dreptul la informații complete",
+          "risk": "3.000 - 6.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "element_visibility"
+          }
+        },
+        "6.2": {
+          "desc": "Formula de calcul transparentă (preț bază + modificatori)",
+          "where_to_verify": "Rezumat evaluare",
+          "law": "Legea nr. 105/2003, Art. 6 lit. d); Directiva 2005/29/CE",
+          "risk": "3.000 - 6.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "6.3": {
+          "desc": "Terminologie corectă: \"bonus\" pentru creștere, \"reducere\" pentru scădere",
+          "where_to_verify": "Toate textele Trade-In",
+          "law": "Legea nr. 105/2003, Art. 13 - practici comerciale corecte",
+          "risk": "2.000 - 5.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "6.4": {
+          "desc": "Condițiile programului Trade-In disponibile și accesibile",
+          "where_to_verify": "T&C sau pagină dedicată",
+          "law": "Legea nr. 284/2004, Art. 8-9",
+          "risk": "3.000 - 6.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "6.5": {
+          "desc": "Aspecte ecologice: informare despre reciclare/utiliza dispozitivelor",
+          "where_to_verify": "Pagina Trade-In",
+          "law": "Legea nr. 209/2016 privind deșeurile; Directiva WEEE",
+          "risk": "2.000 - 5.000",
+          "severity": "SCĂZUT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        }
+      }
+    },
+    "7_dreptul_de_retragere": {
+      "title": "7. DREPTUL DE RETRAGERE",
+      "requirements": {
+        "7.1": {
+          "desc": "Informare clară despre dreptul de retragere în 14 zile",
+          "where_to_verify": "T&C, Checkout, Confirmare comandă",
+          "law": "Legea nr. 284/2004, Art. 7 alin. (1); Directiva 2011/83/UE, Art. 9",
+          "risk": "5.000 - 10.000",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "7.2": {
+          "desc": "Formular standard de retragere disponibil (descărcabil sau online)",
+          "where_to_verify": "T&C sau pagină Retururi",
+          "law": "Legea nr. 284/2004, Art. 7 alin. (3); Anexa I lit. B la Directivă",
+          "risk": "5.000 - 10.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "7.3": {
+          "desc": "Excepțiile de la dreptul de retragere listate clar",
+          "where_to_verify": "T&C",
+          "law": "Legea nr. 284/2004, Art. 7 alin. (6); Directiva 2011/83/UE, Art. 16",
+          "risk": "3.000 - 7.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "7.4": {
+          "desc": "Procedura de returnare descrisă (adresa, costurile, termenele)",
+          "where_to_verify": "T&C, Politica Retur",
+          "law": "Legea nr. 284/2004, Art. 7 alin. (4-5)",
+          "risk": "3.000 - 7.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "7.5": {
+          "desc": "Termenul de rambursare (max. 14 zile de la primirea produsului returnat)",
+          "where_to_verify": "T&C",
+          "law": "Directiva 2011/83/UE, Art. 13",
+          "risk": "5.000 - 10.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        }
+      }
+    },
+    "8_garantie_si_service": {
+      "title": "8. GARANȚIE ȘI SERVICE",
+      "requirements": {
+        "8.1": {
+          "desc": "Termenul de garanție afișat pe pagina produsului",
+          "where_to_verify": "Pagina produs",
+          "law": "Legea nr. 105/2003, Art. 17 alin. (1)",
+          "risk": "3.000 - 6.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "element_visibility"
+          }
+        },
+        "8.2": {
+          "desc": "Informare despre garanția legală de 2 ani (pentru bunuri)",
+          "where_to_verify": "T&C, Pagina produs",
+          "law": "Directiva 1999/44/CE; Legea nr. 105/2003, Art. 17-18",
+          "risk": "3.000 - 6.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "8.3": {
+          "desc": "Centrele de service autorizate listate (adrese, contacte)",
+          "where_to_verify": "Pagină Service/Support",
+          "law": "Legea nr. 105/2003, Art. 20",
+          "risk": "2.000 - 5.000",
+          "severity": "SCĂZUT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "8.4": {
+          "desc": "Condițiile de garanție descrise (ce acoperă, ce nu acoperă)",
+          "where_to_verify": "T&C, Certificat garanție",
+          "law": "Legea nr. 105/2003, Art. 17 alin. (3)",
+          "risk": "3.000 - 6.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "8.5": {
+          "desc": "Certificat de garanție disponibil în format electronic",
+          "where_to_verify": "Email confirmare, Cont client",
+          "law": "Best practice; Directiva digitalizare documente",
+          "risk": "Reputațional",
+          "severity": "SCĂZUT",
+          "scope": "BEST_PRACTICE",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Best practice / recommendation; manual review."
+          }
+        }
+      }
+    },
+    "9_reclamatii_si_litigii": {
+      "title": "9. RECLAMAȚII ȘI LITIGII",
+      "requirements": {
+        "9.1": {
+          "desc": "Procedura de reclamații descrisă și accesibilă",
+          "where_to_verify": "T&C sau pagină dedicată",
+          "law": "Legea nr. 105/2003, Art. 34; Legea nr. 284/2004, Art. 16",
+          "risk": "3.000 - 6.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "9.2": {
+          "desc": "Termen de răspuns la reclamații indicat (recomandat: max. 30 zile)",
+          "where_to_verify": "T&C",
+          "law": "Legea nr. 105/2003, Art. 35",
+          "risk": "3.000 - 6.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "9.3": {
+          "desc": "Link către platforma ODR (ec.europa.eu/odr) pentru litigii online",
+          "where_to_verify": "Footer, T&C",
+          "law": "Regulamentul (UE) nr. 524/2013, Art. 14",
+          "risk": "5.000 - 10.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "link_presence",
+            "target_url": "ec.europa"
+          }
+        },
+        "9.4": {
+          "desc": "Mențiunea despre instanța competentă (dacă e cazul)",
+          "where_to_verify": "T&C",
+          "law": "Codul de Procedură Civilă",
+          "risk": "2.000 - 5.000",
+          "severity": "SCĂZUT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "9.5": {
+          "desc": "Integrare cu platforma APCSP pentru depunere reclamații online",
+          "where_to_verify": "Pagina Reclamații",
+          "law": "Legea nr. 105/2003, Art. 34; Best practice RM",
+          "risk": "2.000 - 5.000",
+          "severity": "SCĂZUT",
+          "scope": "BEST_PRACTICE",
+          "automation": {
+            "type": "link_presence"
+          }
+        }
+      }
+    },
+    "10_accesibilitate_web": {
+      "title": "10. ACCESIBILITATE WEB",
+      "requirements": {
+        "10.1": {
+          "desc": "Contrast text minim 4.5:1 (text normal), 3:1 (text mare)",
+          "where_to_verify": "Toate paginile",
+          "law": "Directiva (UE) 2019/882, Art. 4; WCAG 2.1 AA",
+          "risk": "Reputațional",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "10.2": {
+          "desc": "Navigare completă cu tastatura (Tab, Enter, Escape)",
+          "where_to_verify": "Checkout complet",
+          "law": "WCAG 2.1, Criteriul 2.1.1",
+          "risk": "Reputațional",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "10.3": {
+          "desc": "Text alternativ (alt) pentru imagini informative",
+          "where_to_verify": "Imagini produse",
+          "law": "WCAG 2.1, Criteriul 1.1.1",
+          "risk": "Reputațional",
+          "severity": "SCĂZUT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "10.4": {
+          "desc": "Formularele au etichete asociate (label for)",
+          "where_to_verify": "Toate formularele",
+          "law": "WCAG 2.1, Criteriul 1.3.1",
+          "risk": "Reputațional",
+          "severity": "SCĂZUT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "10.5": {
+          "desc": "Testare pe dispozitive mobile (responsive design + touch accessibility)",
+          "where_to_verify": "Site complet pe mobile",
+          "law": "WCAG 2.1; Best practice mobile-first",
+          "risk": "Reputațional",
+          "severity": "MEDIU",
+          "scope": "BEST_PRACTICE",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Best practice / recommendation; manual review."
+          }
+        }
+      }
+    },
+    "11_securitate_plati": {
+      "title": "11. SECURITATE PLĂȚI",
+      "requirements": {
+        "11.1": {
+          "desc": "Certificat SSL/TLS activ (HTTPS) pentru tot site-ul",
+          "where_to_verify": "Tot site-ul",
+          "law": "Legea nr. 133/2011; GDPR Art. 32; Best practice securitate",
+          "risk": "5.000 - 15.000",
+          "severity": "CRITIC",
+          "scope": "BEST_PRACTICE",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Best practice / recommendation; manual review."
+          }
+        },
+        "11.2": {
+          "desc": "Conformitate PCI DSS pentru procesare plăți cu card",
+          "where_to_verify": "Integrare payment gateway",
+          "law": "PCI Security Standards Council; Cerință procesatori plăți",
+          "risk": "Blocare procesare",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "11.3": {
+          "desc": "Tokenizare date carduri (nu stocare carduri în clar)",
+          "where_to_verify": "Backend plăți",
+          "law": "PCI DSS Requirement 3",
+          "risk": "Blocare procesare",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "11.4": {
+          "desc": "Integrare cu BNM pentru plăți locale (dacă aplicabil)",
+          "where_to_verify": "Payment gateway",
+          "law": "Reglementări BNM; Legea nr. 548/1995 privind BNM",
+          "risk": "5.000 - 10.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "11.5": {
+          "desc": "Afișare sigile de securitate (Verified, Mastercard SecureCode)",
+          "where_to_verify": "Pagina checkout",
+          "law": "Best practice; Încredere consumatori",
+          "risk": "Reputațional",
+          "severity": "SCĂZUT",
+          "scope": "BEST_PRACTICE",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Best practice / recommendation; manual review."
+          }
+        }
+      }
+    },
+    "12_anti_spam_si_marketing": {
+      "title": "12. ANTI-SPAM ȘI MARKETING",
+      "requirements": {
+        "12.1": {
+          "desc": "Consimțământ explicit (opt-in) pentru newsletter/marketing",
+          "where_to_verify": "Formulare abonare",
+          "law": "GDPR Art. 6(1)(a); Legea nr. 133/2011",
+          "risk": "10.000 - 20.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "12.2": {
+          "desc": "Checkbox newsletter NU este pre-bifat",
+          "where_to_verify": "Checkout, Formulare",
+          "law": "GDPR Art. 7; Directiva 2002/58/CE (ePrivacy)",
+          "risk": "10.000 - 20.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "checkbox_state",
+            "expected_state": "unchecked"
+          }
+        },
+        "12.3": {
+          "desc": "Link de dezabonare funcțional în fiecare e-mail marketing",
+          "where_to_verify": "Footer e-mailuri",
+          "law": "GDPR Art. 21; Legea nr. 133/2011",
+          "risk": "5.000 - 15.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "link_presence"
+          }
+        },
+        "12.4": {
+          "desc": "Consimțământ separat pentru SMS marketing",
+          "where_to_verify": "Formulare mobile",
+          "law": "Legea nr. 133/2011; Directiva ePrivacy",
+          "risk": "10.000 - 20.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "12.5": {
+          "desc": "Evidență consimțăminte marketing (proof of consent)",
+          "where_to_verify": "Bază de date internă",
+          "law": "GDPR Art. 7(1); Legea nr. 133/2011",
+          "risk": "10.000 - 20.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        }
+      }
+    },
+    "13_proprietate_intelectuala": {
+      "title": "13. PROPRIETATE INTELECTUALĂ",
+      "requirements": {
+        "13.1": {
+          "desc": "Produse originale cu dovezi autenticitate (facturi, certificate)",
+          "where_to_verify": "Documentație furnizori",
+          "law": "Legea nr. 139/2010 privind mărci; Cod Civil Art. 687-713",
+          "risk": "10.000 - 50.000",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "13.2": {
+          "desc": "Interdicție vânzare produse contrafăcute",
+          "where_to_verify": "Verificare stocuri",
+          "law": "Legea nr. 139/2010; Cod Penal Art. 186",
+          "risk": "Confiscare + penal",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "13.3": {
+          "desc": "Drepturi de utilizare imagini produse (licențe fotografii)",
+          "where_to_verify": "Asset management",
+          "law": "Legea nr. 139/2010; Legea drepturilor de autor nr. 293/1994",
+          "risk": "5.000 - 20.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "13.4": {
+          "desc": "Respectare mărci înregistrate în descrieri produse",
+          "where_to_verify": "Conținut site",
+          "law": "Legea nr. 139/2010",
+          "risk": "10.000 - 30.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "13.5": {
+          "desc": "Procedură take-down pentru încălcări IP raportate",
+          "where_to_verify": "Proceduri interne",
+          "law": "Best practice; Protecție juridică",
+          "risk": "Risc litigii",
+          "severity": "MEDIU",
+          "scope": "BEST_PRACTICE",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Best practice / recommendation; manual review."
+          }
+        }
+      }
+    },
+    "14_ecologie_si_sustenabilitate": {
+      "title": "14. ECOLOGIE ȘI SUSTENABILITATE",
+      "requirements": {
+        "14.1": {
+          "desc": "Eco-taxa pentru ambalaje afișată (dacă aplicabil)",
+          "where_to_verify": "Checkout",
+          "law": "Legea nr. 209/2016 privind deșeurile, Art. 23-24",
+          "risk": "5.000 - 12.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "element_visibility"
+          }
+        },
+        "14.2": {
+          "desc": "Informații despre reciclare ambalaje (simboluri, instrucțiuni)",
+          "where_to_verify": "Ambalaj fizic + site",
+          "law": "Legea nr. 209/2016; Directiva 94/62/CE (Ambalaje)",
+          "risk": "3.000 - 8.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "14.3": {
+          "desc": "Informații despre reciclare DEEE (echipamente electronice)",
+          "where_to_verify": "Produse electrice/electronice",
+          "law": "Legea nr. 209/2016; Directiva WEEE 2012/19/UE",
+          "risk": "5.000 - 15.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "14.4": {
+          "desc": "Opțiuni livrare eco-friendly (dacă disponibile)",
+          "where_to_verify": "Checkout",
+          "law": "Recomandare; Transparență consumatori",
+          "risk": "Reputațional",
+          "severity": "SCĂZUT",
+          "scope": "BEST_PRACTICE",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Best practice / recommendation; manual review."
+          }
+        },
+        "14.5": {
+          "desc": "Afișare amprentă carbon (dacă calculată)",
+          "where_to_verify": "Pagina produs/livrare",
+          "law": "Best practice; Transparență ESG",
+          "risk": "Reputațional",
+          "severity": "SCĂZUT",
+          "scope": "BEST_PRACTICE",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Best practice / recommendation; manual review."
+          }
+        }
+      }
+    },
+    "15_aspecte_internationale": {
+      "title": "15. ASPECTE INTERNAȚIONALE",
+      "requirements": {
+        "15.1": {
+          "desc": "Informații despre taxe vamale pentru livrări internaționale",
+          "where_to_verify": "Pagina livrare internațională",
+          "law": "Cod Vamal al RM; Regulament vamal UE nr. 952/2013",
+          "risk": "3.000 - 10.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "15.2": {
+          "desc": "Coduri HS (Harmonized System) corecte pentru produse export",
+          "where_to_verify": "Documentație export",
+          "law": "Nomenclatura combinată vamal 2025; Convenția HS",
+          "risk": "5.000 - 20.000",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "15.3": {
+          "desc": "Restricții export/import (produse interzise, licențe)",
+          "where_to_verify": "Documentație produse",
+          "law": "Legea nr. 1380/1997 privind controlul exportului; Liste UE",
+          "risk": "10.000 - confiscare",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "15.4": {
+          "desc": "Termeni livrare INCOTERMS 2020 clari (DAP, DDP, etc.)",
+          "where_to_verify": "T&C internaționale",
+          "law": "INCOTERMS 2020 ICC; Transparență costuri",
+          "risk": "3.000 - 8.000",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "15.5": {
+          "desc": "Certificări produse pentru piață UE (CE, RoHS, REACH)",
+          "where_to_verify": "Certificări produse",
+          "law": "Regulamente UE relevante pentru produs",
+          "risk": "Blocare import UE",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        }
+      }
+    },
+    "16_ai_si_automatizare": {
+      "title": "16. AI ȘI AUTOMATIZARE",
+      "requirements": {
+        "16.1": {
+          "desc": "Transparență utilizare AI în recomandări produse",
+          "where_to_verify": "Pagină despre AI / T&C",
+          "law": "AI Act (UE) 2024/1689; GDPR Art. 22",
+          "risk": "5.000 - 20.000*",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "16.2": {
+          "desc": "Dreptul la intervenție umană pentru decizii automate (prețuri, credit)",
+          "where_to_verify": "Politică decizii automate",
+          "law": "GDPR Art. 22; AI Act",
+          "risk": "10.000 - 30.000*",
+          "severity": "RIDICAT",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "16.3": {
+          "desc": "Divulgare utilizare chatbot AI (dacă este AI, nu om)",
+          "where_to_verify": "Chatbot/support",
+          "law": "AI Act Art. 52; Transparență consumatori",
+          "risk": "5.000 - 15.000*",
+          "severity": "MEDIU",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "16.4": {
+          "desc": "Evaluare risc pentru sisteme AI high-risk (dacă aplicabil)",
+          "where_to_verify": "Documentație AI",
+          "law": "AI Act Art. 9; Evaluare conformitate",
+          "risk": "20.000 - 100.000*",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        },
+        "16.5": {
+          "desc": "Protecție împotriva manipulării comportamentului prin AI",
+          "where_to_verify": "Algoritmi recomandare",
+          "law": "AI Act Art. 5; Practici interzise",
+          "risk": "30.000 - 150.000*",
+          "severity": "CRITIC",
+          "scope": "MANDATORY",
+          "automation": {
+            "type": "manual_check",
+            "notes": "Needs manual verification or a custom rule."
+          }
+        }
+      }
+    }
+  }
+}

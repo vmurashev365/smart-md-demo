@@ -1,0 +1,11 @@
+export { keywordSearchCheck } from './keywordSearch.check';
+export { regexSearchCheck } from './regexSearch.check';
+export { linkPresenceCheck } from './linkPresence.check';
+export { checkboxStateCheck } from './checkboxState.check';
+export { buttonTextExactCheck } from './buttonTextExact.check';
+export { currencyCheck } from './currencyCheck.check';
+export { sslCheck } from './sslCheck.check';
+export { cookieBannerComplianceCheck } from './cookieBanner.check';
+export { networkSniffingCheck } from './networkSniffing.check';
+export { elementVisibilityCheck } from './elementVisibility.check';
+export { manualCheck } from './manualCheck.stub';
